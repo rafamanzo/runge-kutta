@@ -1,0 +1,14 @@
+The input file should be formated as the following:
+
+n h
+x0 y0 a b c
+...
+n times
+...
+
+Where n is an integer that defines how many calculation will be made, h is a double and represent the stepsize, x0 and y0 are double that define the initial point and a,b,c are double constants from the function f(x,y) = dydx = a*x + b*y + c.
+
+Example:
+
+1 0.2
+0.0 1.0 1.0 -2.0 4.0
