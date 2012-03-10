@@ -1,4 +1,5 @@
 #include<stdlib.h>
+#include "../first_order_function.h"
 #include "../rk.h"
 
 void rk2(double *x0, double *y0, int n, double h, fof *dydx, double *y1){

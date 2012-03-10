@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include "first_order_function.h"
 #include "rk.h"
 #include "input.h"
 
@@ -15,8 +16,8 @@ int main(int argc, char *argv[]){
   
   strcpy(input, argv[1]);
   parseFile(input, &n, &h, &x0, &y0, &dydx);
-  y1 = malloc(n*sizeof(double));
-  y1rk4 = malloc(n*sizeof(double));
+  y1 = (double *) malloc(n*sizeof(double));
+  y1rk4 = (double *) malloc(n*sizeof(double));
   
   rk2(x0,y0,n,h,dydx,y1);
   rk4(x0,y0,n,h,dydx,y1rk4);

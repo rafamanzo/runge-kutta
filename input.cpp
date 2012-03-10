@@ -1,5 +1,6 @@
 #include<stdlib.h>
 #include<stdio.h>
+#include "first_order_function.h"
 #include "rk.h"
 #include "input.h"
 
@@ -14,9 +15,9 @@ void parseFile(char *file, int *n, double *h, double **x0, double **y0, fof **dy
   fscanf(fp, "%d", n);
   fscanf(fp, "%lf", h); 
   
-  x0_aux = malloc((*n)*sizeof(double));
-  y0_aux = malloc((*n)*sizeof(double));
-  dydx_aux = malloc((*n)*sizeof(fof));
+  x0_aux = (double *) malloc((*n)*sizeof(double));
+  y0_aux = (double *) malloc((*n)*sizeof(double));
+  dydx_aux = (fof *) malloc((*n)*sizeof(fof));
   
   for(i = 0; i < (*n); i++){
     fscanf(fp, "%lf", &x0_aux[i]);

@@ -1,11 +1,28 @@
-main: main.c input.h rk.h c_version input
-	gcc main.c input.o rk.o -Wall -ansi -o rk
-	
-input: input.h rk.h
-	gcc -c -Wall -ansi input.c
+#default C++ version
+c: main.o rk_c.o input.o
+	g++ main.o input.o rk_c.o -Wall -ansi -o rk
 
-c_version: c/rk.c rk.h
-	gcc -c -Wall -ansi c/rk.c
+#general objects
+main.o: main.cpp input.h rk.h first_order_function.h
+	g++ main.cpp -Wall -ansi -c
 	
+input.o: input.cpp input.h rk.h first_order_function.h
+	g++ -c -Wall -ansi input.cpp
+
+#C++
+rk_c.o: c/rk.cpp rk.h first_order_function.h
+	g++ -c -Wall -ansi c/rk.cpp -o rk_c.o
+
+#CUDA
+cuda: main.o rk_cuda.o rk_cuda_kernel.o input.o
+	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o -o rk
+	
+rk_cuda_kernel.o: cuda/rk.cu cuda/rk_kernel.h first_order_function.h
+	nvcc -c cuda/rk.cu -o rk_cuda_kernel.o
+
+rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h first_order_function.h
+	nvcc -c cuda/rk.cpp -o rk_cuda.o
+
+#OTHER
 clean:
 	rm -f *~ *.o rk
