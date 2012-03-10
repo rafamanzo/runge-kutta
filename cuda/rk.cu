@@ -43,6 +43,11 @@ void rk2_caller(double *x0, double *y0, int n, double h, fof *dydx, double *y1){
   rk2_kernel<<<1,n>>>(d_x0, d_y0, h, d_dydx, d_y1);
   
   cudaMemcpy(y1, d_y1, n*sizeof(double), cudaMemcpyDeviceToHost);
+  
+  cudaFree(d_x0);
+  cudaFree(d_y0);
+  cudaFree(d_y1);
+  cudaFree(d_dydx);
 }
 
 void rk4_caller(double *x0, double *y0, int n, double h, fof *dydx, double *y1){
@@ -63,4 +68,9 @@ void rk4_caller(double *x0, double *y0, int n, double h, fof *dydx, double *y1){
   rk4_kernel<<<1,n>>>(d_x0, d_y0, h, d_dydx, d_y1);
   
   cudaMemcpy(y1, d_y1, n*sizeof(double), cudaMemcpyDeviceToHost);
+  
+  cudaFree(d_x0);
+  cudaFree(d_y0);
+  cudaFree(d_y1);
+  cudaFree(d_dydx);
 }
