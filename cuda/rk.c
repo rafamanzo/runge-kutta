@@ -1,6 +1,4 @@
 #include<stdlib.h>
-#include "cuda.h"
-#include "cuda_runtime.h"
 #include "../first_order_function.h"
 #include "../rk.h"
 #include "rk_kernel.h"

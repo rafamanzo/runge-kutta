@@ -15,13 +15,13 @@ rk_c.o: c/rk.cpp rk.h first_order_function.h
 
 #CUDA
 cuda: main.o rk_cuda.o rk_cuda_kernel.o input.o
-	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o -o rk
+	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o -o rk -arch compute_20
 	
 rk_cuda_kernel.o: cuda/rk.cu cuda/rk_kernel.h first_order_function.h
-	nvcc -c cuda/rk.cu -o rk_cuda_kernel.o
+	nvcc -c cuda/rk.cu -o rk_cuda_kernel.o -arch compute_20
 
 rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h first_order_function.h
-	nvcc -c cuda/rk.cpp -o rk_cuda.o
+	nvcc -c cuda/rk.cpp -o rk_cuda.o -arch compute_20
 
 #OTHER
 clean:
