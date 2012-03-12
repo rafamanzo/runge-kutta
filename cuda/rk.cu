@@ -6,7 +6,9 @@
 
 __global__ void rk2_kernel(double *x0, double *y0, double h, fof *dydx, double *y1){
   __shared__ double k1, k2;
-  __shared__ int i = threadIdx.x;
+  __shared__ int i;
+
+  i = threadIdx.x;
   
   k1 = h*(dydx[i].a*x0[i] + dydx[i].b*y0[i] + dydx[i].c);
   k2 = h*(dydx[i].a*(x0[i] + h/2.0) + dydx[i].b*(y0[i] + k1/2.0) + dydx[i].c);
@@ -16,7 +18,9 @@ __global__ void rk2_kernel(double *x0, double *y0, double h, fof *dydx, double *
 
 __global__ void rk4_kernel(double *x0, double *y0, double h, fof *dydx, double *y1){
   __shared__ double k1, k2, k3, k4;
-  __shared__ int i = threadIdx.x;
+  __shared__ int i;
+  
+  i = threadIdx.x;
   
   k1 = h*(dydx[i].a*x0[i] + dydx[i].b*y0[i] + dydx[i].c);
   k2 = h*(dydx[i].a*(x0[i] + h/2.0) + dydx[i].b*(y0[i] + k1/2.0) + dydx[i].c);
