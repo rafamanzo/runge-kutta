@@ -1,7 +1,6 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include "first_order_function.h"
-#include "rk.h"
 #include "input.h"
 
 void parseFile(char *file, int *n, double *h, double **x0, double **y0, fof **dydx){

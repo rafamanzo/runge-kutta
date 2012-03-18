@@ -1,4 +1,8 @@
 *~
 *.o
 rk
+test
+core
 example
+example3d
+a.out
