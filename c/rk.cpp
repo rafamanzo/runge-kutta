@@ -27,9 +27,10 @@ vector nearest_neighbour(vector v0, int n_x, int n_y, int n_z, vector_field fiel
   else
     z = (int) floor(v0.z);
 
-  if(x >= n_x || y >= n_y || z >= n_z)
+  if(x >= n_x || y >= n_y || z >= n_z || x < 0 || y < 0 || z < 0){
+    printf("\nNearrest neighbour to (%f, %f, %f) is (%d, %d,%d)", v0.x, v0.y, v0.z, x, y, z);
     return zero;
-  else{
+  }else{
     printf("\nNearrest neighbour to (%f, %f, %f) is (%d, %d,%d) with direction (%f, %f, %f)", v0.x, v0.y, v0.z, x, y, z, field[offset(n_x, n_y, x, y, z)].x, field[offset(n_x, n_y, x, y, z)].y, field[offset(n_x, n_y, x, y, z)].z);
     return field[offset(n_x, n_y, x, y, z)];
   }
@@ -53,8 +54,8 @@ void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
           
       set( &(points_aux[n_points_aux - 1]), initial);
     
-      set( &k1, mult_scalar( initial, h ) );
-      set( &k2, mult_scalar( sum( initial, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h/2.0 ) ) ) , h ) );
+      set( &k1, mult_scalar( direction, h ) );
+      set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
       
       set( &initial, sum( initial, k2) );
       set( &direction, nearest_neighbour(initial, n_x, n_y, n_z, field) );

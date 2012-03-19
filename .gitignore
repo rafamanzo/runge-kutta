@@ -5,5 +5,7 @@ test
 core
 example
 example3d
+rotationField
 a.out
+out
 plot.dat

@@ -5,7 +5,7 @@
   $dim_z = $argv[3];
   $h = 0.02;
   $v0_count = 1;
-  $v0 = "75.0 50.0 25.0";  
+  $v0 = "10.0 15.0 10.0";  
 
   $out = fopen("rotationField", "w");
 

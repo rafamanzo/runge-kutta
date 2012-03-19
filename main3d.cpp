@@ -17,11 +17,11 @@ int main(int argc, char *argv[]){
   strcpy(input, argv[1]);
   parseFile(input, &n_x, &n_y, &n_z, &h, &v0, &v0_count, &field);
 
-  printf("\nv0_count: %d", v0_count);
+  /*printf("\nv0_count: %d", v0_count);
   for(i = 0; i < v0_count; i++)
     printf("\n(%f, %f, %f)", v0[i].x, v0[i].y, v0[i].z);
   printf("\nn_x: %d | n_y: %d | n_z: %d | h: %f", n_x, n_y, n_z, h);
-  /*for(k = 0; k < n_z; k++){
+  for(k = 0; k < n_z; k++){
     printf("\n**********");
     for(i = 0; i < n_x; i++){
       printf("\n");
