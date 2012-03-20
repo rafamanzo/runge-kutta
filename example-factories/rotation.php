@@ -1,11 +1,11 @@
 <?php
 
-  $dim_x = $argv[1];
-  $dim_y = $argv[2];
-  $dim_z = $argv[3];
+  $dim_x = 128;
+  $dim_y = 128;
+  $dim_z = 20;
   $h = 0.02;
   $v0_count = 1;
-  $v0 = "10.0 15.0 10.0";  
+  $v0 = "64.0 64.0 10.0";  
 
   $out = fopen("rotationField", "w");
 

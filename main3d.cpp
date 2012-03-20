@@ -4,15 +4,16 @@
 #include "vector_field.h"
 #include "rk3d.h"
 #include "input3d.h"
+#include "output.h"
 
 int main(int argc, char *argv[]){
   char input[50];
   vector_field field;
-  int n_x, n_y, n_z, v0_count, i, j, k;
+  int n_x, n_y, n_z, v0_count, i;
   vector *v0;
   double h;
-  vector **points;
-  int *n_points;
+  vector **points_rk4, **points_rk2;
+  int *n_points_rk4, *n_points_rk2;
   
   strcpy(input, argv[1]);
   parseFile(input, &n_x, &n_y, &n_z, &h, &v0, &v0_count, &field);
@@ -31,15 +32,16 @@ int main(int argc, char *argv[]){
     }
   }*/
 
-  points = (vector **) malloc(v0_count*sizeof(vector *));
-  n_points = (int *) malloc(v0_count*sizeof(int));
+  points_rk2 = (vector **) malloc(v0_count*sizeof(vector *));
+  n_points_rk2 = (int *) malloc(v0_count*sizeof(int));
+  points_rk4 = (vector **) malloc(v0_count*sizeof(vector *));
+  n_points_rk4 = (int *) malloc(v0_count*sizeof(int));
   
-  rk2(v0, v0_count, h, n_x, n_y, n_z, field, &points, &n_points);
+  rk2(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk2, &n_points_rk2);
+  rk4(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk4, &n_points_rk4);
   
   for(i = 0; i < v0_count; i++)
-    for (j = 0; j < n_points[i]; j++)
-      printf("\n%f %f %f", points[i][j].x, points[i][j].y, points[i][j].z);
-  printf("\n");
+    generate_gnuplot_input(n_x, n_y, n_z, n_points_rk2[i], points_rk2[i], n_points_rk4[i], points_rk4[i]);
   
   return 0;
 }

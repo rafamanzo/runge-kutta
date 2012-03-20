@@ -28,10 +28,8 @@ vector nearest_neighbour(vector v0, int n_x, int n_y, int n_z, vector_field fiel
     z = (int) floor(v0.z);
 
   if(x >= n_x || y >= n_y || z >= n_z || x < 0 || y < 0 || z < 0){
-    printf("\nNearrest neighbour to (%f, %f, %f) is (%d, %d,%d)", v0.x, v0.y, v0.z, x, y, z);
     return zero;
   }else{
-    printf("\nNearrest neighbour to (%f, %f, %f) is (%d, %d,%d) with direction (%f, %f, %f)", v0.x, v0.y, v0.z, x, y, z, field[offset(n_x, n_y, x, y, z)].x, field[offset(n_x, n_y, x, y, z)].y, field[offset(n_x, n_y, x, y, z)].z);
     return field[offset(n_x, n_y, x, y, z)];
   }
 }
@@ -58,6 +56,40 @@ void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
       set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
       
       set( &initial, sum( initial, k2) );
+      set( &direction, nearest_neighbour(initial, n_x, n_y, n_z, field) );
+    }
+    
+    (*n_points)[i] = n_points_aux;
+    (*points)[i] = points_aux;
+    points_aux = NULL;
+    n_points_aux = 0;
+  }
+}
+
+void rk4(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+  vector k1, k2, k3, k4, initial, direction;
+  vector *points_aux;
+  int i, n_points_aux;
+  
+  points_aux = NULL;
+  n_points_aux = 0;
+  
+  for(i = 0; i < count_v0; i++){
+    set( &initial, v0[i] );
+    set( &direction, field[offset(n_x, n_y, initial.x, initial.y, initial.z)] );
+    
+    while(floor(module(direction)) > 0.0){
+      n_points_aux++;
+      points_aux = (vector *) realloc(points_aux, n_points_aux*sizeof(vector));
+          
+      set( &(points_aux[n_points_aux - 1]), initial);
+    
+      set( &k1, mult_scalar( direction, h ) );
+      set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
+      set( &k3, sum( mult_scalar(k2, 0.5), mult_scalar( direction, h ) ) );
+      set( &k4, sum( k3, mult_scalar( direction, h ) ) );
+      
+      set( &initial, sum( initial, sum( mult_scalar( k1 , 0.166666667 ), sum( mult_scalar( k2, 0.333333333 ), sum( mult_scalar( k3, 0.333333333 ), mult_scalar( k4, 0.166666667 ) ) ) ) ) );
       set( &direction, nearest_neighbour(initial, n_x, n_y, n_z, field) );
     }
     
