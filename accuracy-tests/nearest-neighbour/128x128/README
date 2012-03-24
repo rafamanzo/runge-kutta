@@ -1,0 +1,1 @@
+We can see that the error is very large in the middle point of the curve and there is no visual difference between RK2 and RK4 or different step sizes.
