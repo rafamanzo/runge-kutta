@@ -31,3 +31,7 @@ void set(vector *x, vector y){
 double module(vector v){
   return sqrt(pow(v.x, 2) + pow(v.y, 2) + pow(v.z, 2));
 }
+
+double distance(vector x, vector y){
+  return module(sum(x, mult_scalar(y, -1.0)));
+}
