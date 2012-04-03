@@ -1,4 +1,5 @@
 .PHONY: clean
+COMPUTE_CAPABILITY=-arch compute_20
 
 #default C++ version
 c: main3d.o rk_c.o input3d.o vector_operations_c.o vector_field_c.o output.o
@@ -31,14 +32,17 @@ vector_operations_c.o:
 	g++ -c -Wall -ansi -pedantic c/vector_operations.cpp -o vector_operations_c.o
 
 #CUDA
-cuda: main.o rk_cuda.o rk_cuda_kernel.o input.o
-	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o -o rk -arch compute_20
+cuda: main.o rk_cuda.o rk_cuda_kernel.o input.o vector_field_cuda.o
+	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o -o rk ${COMPUTE_CAPABILITY}
 	
 rk_cuda_kernel.o: cuda/rk.cu cuda/rk_kernel.h first_order_function.h
-	nvcc -c cuda/rk.cu -o rk_cuda_kernel.o -arch compute_20
+	nvcc -c cuda/rk.cu -o rk_cuda_kernel.o ${COMPUTE_CAPABILITY}
 
 rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h first_order_function.h
-	nvcc -c cuda/rk.cpp -o rk_cuda.o -arch compute_20
+	nvcc -c cuda/rk.cpp -o rk_cuda.o ${COMPUTE_CAPABILITY}
+	
+vector_field_cuda.o: cuda/vector_field.cu vector_field.h
+	nvcc -c cuda/vector_field.cu  -o vector_field_cuda.o ${COMPUTE_CAPABILITY}
 
 #OTHER
 clean:
