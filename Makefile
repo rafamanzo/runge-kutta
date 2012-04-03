@@ -1,3 +1,5 @@
+.PHONY: clean
+
 #default C++ version
 c: main3d.o rk_c.o input3d.o vector_operations_c.o vector_field_c.o output.o
 	g++ main3d.o input3d.o rk_c.o vector_operations_c.o vector_field_c.o output.o -Wall -ansi -o rk
