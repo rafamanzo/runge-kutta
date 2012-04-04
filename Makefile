@@ -46,6 +46,7 @@ vector_field_cuda.o: cuda/vector_field.cu vector_field.h
 	
 vector_operations_cuda.o: cuda/vector_operations.cu cuda/vector_operations.h vector_field.h 
 	nvcc -c cuda/vector_operations.cu -o vector_operations_cuda.o ${COMPUTE_CAPABILITY}
+
 #OTHER
 clean:
 	rm -f *~ *.o rk

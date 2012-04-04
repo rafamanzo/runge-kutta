@@ -1,14 +1,11 @@
 #include<stdlib.h>
-#include "cuda.h"
-#include "cuda_runtime.h"
-#include "../first_order_function.h"
-#include "../rk.h"
+#include "../vector_field.h"
+#include "../rk3d.h"
 #include "rk_kernel.h"
 
-void rk2(double *x0, double *y0, int n, double h, fof *dydx, double *y1){
-  rk2_caller(x0, y0, n, h, dydx, y1);
+void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+  rk2_caller(v0, count_v0, h, n_x, n_y, n_z, field, points, n_points);
 }
 
-void rk4(double *x0, double *y0, int n, double h, fof *dydx, double *y1){
-  rk4_caller(x0, y0, n, h, dydx, y1);
+void rk4(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
 }
