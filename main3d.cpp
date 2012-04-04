@@ -38,10 +38,10 @@ int main(int argc, char *argv[]){
   n_points_rk4 = (int *) malloc(v0_count*sizeof(int));
   
   rk2(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk2, &n_points_rk2);
-  rk4(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk4, &n_points_rk4);
+  /*rk4(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk4, &n_points_rk4);
   
   for(i = 0; i < v0_count; i++)
-    generate_gnuplot_input(n_x, n_y, n_z, n_points_rk2[i], points_rk2[i], n_points_rk4[i], points_rk4[i]);
+    generate_gnuplot_input(n_x, n_y, n_z, n_points_rk2[i], points_rk2[i], n_points_rk4[i], points_rk4[i]);*/
   
   return 0;
 }

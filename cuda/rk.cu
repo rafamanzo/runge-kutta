@@ -66,15 +66,37 @@ __device__ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, 
   }
 }
 
-__global__ void rk2_kernel(double *x0, double *y0, double h, fof *dydx, double *y1){
-  __shared__ double k1, k2;
-  __shared__ int i;
-
+__global__ void rk2_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector **points, int *n_points){
+  /*TODO: moving the field to the shared memory should increase performance*/
+  vector k1, k2, initial, direction;
+  vector *points_aux;
+  int i, n_points_aux;
+  
+  points_aux = NULL;
+  n_points_aux = 0;
+  
   i = threadIdx.x;
   
-  k1 = h*(dydx[i].a*x0[i] + dydx[i].b*y0[i] + dydx[i].c);
-  k2 = h*(dydx[i].a*(x0[i] + h/2.0) + dydx[i].b*(y0[i] + k1/2.0) + dydx[i].c);
-  y1[i] = y0[i] + k2;
+  set( &initial, v0[i] );
+  set( &direction, field[offset(n_x, n_y, initial.x, initial.y, initial.z)] );
+  
+  while(floor(module(direction)) > 0.0){
+    n_points_aux++;
+    points_aux = (vector *) realloc(points_aux, n_points_aux*sizeof(vector));
+        
+    set( &(points_aux[n_points_aux - 1]), initial);
+  
+    set( &k1, mult_scalar( direction, h ) );
+    set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
+    
+    set( &initial, sum( initial, k2) );
+    set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
+  }
+  
+  n_points[i] = n_points_aux;
+  points[i] = points_aux;
+  points_aux = NULL;
+  n_points_aux = 0;
 }
 
 
@@ -96,6 +118,7 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   vector_field d_field;
   vector **d_points;
   int *d_n_points;
+  int i, j;
   
   cudaMalloc(&d_v0, count_v0*sizeof(vector));
   cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector));
@@ -105,14 +128,20 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   cudaMemcpy(d_v0, v0, count_v0*sizeof(vector), cudaMemcpyHostToDevice);
   cudaMemcpy(d_field, field, n_x*n_y*n_z*sizeof(vector), cudaMemcpyHostToDevice);
   
-  rk2_kernel<<<1,n>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points);
+  /*TODO: adjust threads per block to maximize performance*/
+  rk2_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points);
   
-  cudaMemcpy(y1, d_y1, n*sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(*n_points, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(*points, d_points, count_v0*sizeof(vector *), cudaMemcpyDeviceToHost);
+  for(i = 0; i < count_v0; i++)
+    cudaMemcpy((*points)[i], d_points[i], (*n_points)[i]*sizeof(vector), cudaMemcpyDeviceToHost);
   
-  cudaFree(d_x0);
-  cudaFree(d_y0);
-  cudaFree(d_y1);
-  cudaFree(d_dydx);
+  cudaFree(d_v0);
+  cudaFree(d_field);
+  for(i = 0; i < count_v0; i++)
+    cudaFree(d_points[i]);
+  cudaFree(d_points);
+  cudaFree(d_n_points);
 }
 
 /*void rk4_caller(double *x0, double *y0, int n, double h, fof *dydx, double *y1){
