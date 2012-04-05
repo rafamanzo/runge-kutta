@@ -1,14 +1,48 @@
+Brasil - São Paulo - São Paulo
+Instituto de Metemática e Estatística da Universidade de São Paulo (IME - USP)
+C++, CUDA and OpenCL implementations of Runge-Kutta methods (orders 2 and 4) applied to vector fields
+
+###########
+# LICENSE #
+###########
+
+GPL v3.0
+Please see http://www.gnu.org/licenses/gpl-3.0.txt
+
+##############
+# DEVELOPERS #
+##############
+
+Orientation: Assistant Professor of Computer Science MARCEL P. JACKOWSKI
+
+Development: Rafael Reggiani Manzo (CUDA and C++)
+             Giancarlo Rigo (OpenCL and C++)
+              
+#########
+# INPUT #
+#########
+
 The input file should be formated as the following:
 
-n h
-x0 y0 a b c
-...
-n times
-...
+x y z
+v0_count
+v0_x v0_y v0_z
+.
+.
+.
+v0_x v0_y v0_z
+p_x p_y p_z
+.
+.
+.
+p_x p_y p_z
+p_x p_y p_z1
+.
+.
+.
+p_x p_y p_z1
+.
+.
+.
 
-Where n is an integer that defines how many calculation will be made, h is a double and represent the stepsize, x0 and y0 are double that define the initial point and a,b,c are double constants from the function f(x,y) = dydx = a*x + b*y + c.
-
-Example:
-
-1 0.2
-0.0 1.0 1.0 -2.0 4.0
+To see a example run: make examples
