@@ -1,35 +1,35 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include "first_order_function.h"
+#include "vector_field.h"
 #include "rk.h"
 #include "input.h"
+#include "output.h"
 
 int main(int argc, char *argv[]){
   char input[50];
-  double *x0, *y0, *y1, *y1rk4, h;
-  int n, i;
-  fof *dydx;
-  
-  x0 = y0 = y1 = NULL;
-  dydx = NULL;
+  vector_field field;
+  int n_x, n_y, n_z, v0_count, i;
+  vector *v0;
+  double h;
+  vector **points_rk4, **points_rk2;
+  int *n_points_rk4, *n_points_rk2;
   
   strcpy(input, argv[1]);
-  parseFile(input, &n, &h, &x0, &y0, &dydx);
-  y1 = (double *) malloc(n*sizeof(double));
-  y1rk4 = (double *) malloc(n*sizeof(double));
+  parseFile(input, &n_x, &n_y, &n_z, &h, &v0, &v0_count, &field);
   
-  rk2(x0,y0,n,h,dydx,y1);
-  rk4(x0,y0,n,h,dydx,y1rk4);
+  rk4(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk4, &n_points_rk4);
+  rk2(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk2, &n_points_rk2);
   
-  for(i = 0; i < n; i++)
-    printf("\nRK2: %f | RK4: %f\n", y1[i], y1rk4[i]);
-  
-  free(x0);
-  free(y0);
-  free(y1);
-  free(y1rk4);
-  free(dydx);
-  
+  generate_gnuplot_input(n_x, n_y, n_z, v0_count, n_points_rk2, points_rk2, n_points_rk4, points_rk4);
+
+  free(v0);
+  free(n_points_rk4);
+  free(n_points_rk2);
+  for(i = 0; i < v0_count; i++){
+    free(points_rk4[i]);
+    free(points_rk2[i]);
+  }
+
   return 0;
 }

@@ -1,10 +1,58 @@
 #include<stdlib.h>
+#include<stdio.h>
 #include<math.h>
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "../vector_field.h"
-#include "vector_operations.h"
 #include "rk_kernel.h"
+
+/******************************/
+/* Auxiliary Vector Functions */
+/******************************/
+
+/*FIXME: there must be libraries inside CUDA to work with vectors*/
+
+__device__ int cuda_offset(int n_x, int n_y, int x, int y, int z){
+  return x + n_x*y + n_y*n_x*z;
+}
+
+__device__ vector sum(vector v1, vector v2){
+  vector sum;
+  
+  sum.x = v1.x + v2.x;
+  sum.y = v1.y + v2.y;
+  sum.z = v1.z + v2.z;
+  
+  return sum;
+}
+
+__device__ vector mult_scalar(vector v, double scalar){
+  vector mult;
+  
+  mult.x = v.x*scalar;
+  mult.y = v.y*scalar;
+  mult.z = v.z*scalar;
+  
+  return mult;
+}
+
+__device__ void set(vector *x, vector y){
+  (*x).x = y.x;
+  (*x).y = y.y;
+  (*x).z = y.z;
+}
+
+__device__ double module(vector v){
+  return sqrt(pow(v.x, 2) + pow(v.y, 2) + pow(v.z, 2));
+}
+
+__device__ double distance(vector x, vector y){
+  return module(sum(x, mult_scalar(y, -1.0)));
+}
+
+/************************************/
+/* Auxiliary Aproximation Functions */
+/************************************/
 
 __device__ vector nearest_neighbour(vector v0, int n_x, int n_y, int n_z, vector_field field){
   int x, y, z;
@@ -30,15 +78,13 @@ __device__ vector nearest_neighbour(vector v0, int n_x, int n_y, int n_z, vector
   if(x >= n_x || y >= n_y || z >= n_z || x < 0 || y < 0 || z < 0){
     return zero;
   }else{
-    return field[offset(n_x, n_y, x, y, z)];
+    return field[cuda_offset(n_x, n_y, x, y, z)];
   }
 }
 
 __device__ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_field field){
   int x1, y1, z1, x0, y0, z0, xd, yd, zd;
-  vector zero, i1, i2, j1, j2, w1, w2;
-  
-  zero.x = zero.y = zero.z = 0.0;
+  vector i1, i2, j1, j2, w1, w2;
   
   x1 = ceil(v0.x);
   y1 = ceil(v0.y);
@@ -54,10 +100,10 @@ __device__ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, 
     yd = (v0.y - y0)/(y1 - y0);
     zd = (v0.z - z0)/(z1 - z0);
     
-    set(&i1, sum( mult_scalar(field[offset(n_x, n_y, x0, y0, z0)], (1.0 - zd)), mult_scalar(field[offset(n_x, n_y, x0, y0, z1)], zd) ) );
-    set(&i2, sum( mult_scalar(field[offset(n_x, n_y, x0, y1, z0)], (1.0 - zd)), mult_scalar(field[offset(n_x, n_y, x0, y1, z1)], zd) ) );
-    set(&j1, sum( mult_scalar(field[offset(n_x, n_y, x1, y0, z0)], (1.0 - zd)), mult_scalar(field[offset(n_x, n_y, x1, y0, z1)], zd) ) );
-    set(&j2, sum( mult_scalar(field[offset(n_x, n_y, x1, y1, z0)], (1.0 - zd)), mult_scalar(field[offset(n_x, n_y, x1, y1, z1)], zd) ) );
+    set(&i1, sum( mult_scalar(field[cuda_offset(n_x, n_y, x0, y0, z0)], (1.0 - zd)), mult_scalar(field[cuda_offset(n_x, n_y, x0, y0, z1)], zd) ) );
+    set(&i2, sum( mult_scalar(field[cuda_offset(n_x, n_y, x0, y1, z0)], (1.0 - zd)), mult_scalar(field[cuda_offset(n_x, n_y, x0, y1, z1)], zd) ) );
+    set(&j1, sum( mult_scalar(field[cuda_offset(n_x, n_y, x1, y0, z0)], (1.0 - zd)), mult_scalar(field[cuda_offset(n_x, n_y, x1, y0, z1)], zd) ) );
+    set(&j2, sum( mult_scalar(field[cuda_offset(n_x, n_y, x1, y1, z0)], (1.0 - zd)), mult_scalar(field[cuda_offset(n_x, n_y, x1, y1, z1)], zd) ) );
     
     set(&w1, sum( mult_scalar(i1, (1.0 - yd)), mult_scalar(i2, yd) ) );
     set(&w2, sum( mult_scalar(j1, (1.0 - yd)), mult_scalar(j2, yd) ) );
@@ -66,25 +112,26 @@ __device__ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, 
   }
 }
 
-__global__ void rk2_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector **points, int *n_points){
+/***********/
+/* Kernels */
+/***********/
+
+__global__ void rk2_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector *points, int *n_points){
   /*TODO: moving the field to the shared memory should increase performance*/
   vector k1, k2, initial, direction;
-  vector *points_aux;
   int i, n_points_aux;
   
-  points_aux = NULL;
   n_points_aux = 0;
   
   i = threadIdx.x;
   
   set( &initial, v0[i] );
-  set( &direction, field[offset(n_x, n_y, initial.x, initial.y, initial.z)] );
+  set( &direction, field[cuda_offset(n_x, n_y, initial.x, initial.y, initial.z)] );
   
-  while(floor(module(direction)) > 0.0){
+  while(floor(module(direction)) > 0.0 && n_points_aux < MAX_POINTS){
     n_points_aux++;
-    points_aux = (vector *) realloc(points_aux, n_points_aux*sizeof(vector));
         
-    set( &(points_aux[n_points_aux - 1]), initial);
+    set( &(points[cuda_offset(count_v0, 0, i, n_points_aux - 1, 0)]), initial );
   
     set( &k1, mult_scalar( direction, h ) );
     set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
@@ -94,35 +141,53 @@ __global__ void rk2_kernel(vector *v0, int count_v0, double h, int n_x, int n_y,
   }
   
   n_points[i] = n_points_aux;
-  points[i] = points_aux;
-  points_aux = NULL;
   n_points_aux = 0;
 }
 
-
-/*__global__ void rk4_kernel(double *x0, double *y0, double h, fof *dydx, double *y1){
-  __shared__ double k1, k2, k3, k4;
-  __shared__ int i;
+__global__ void rk4_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector *points, int *n_points){
+  /*TODO: moving the field to the shared memory should increase performance*/
+  vector k1, k2, k3, k4, initial, direction;
+  int i, n_points_aux;
+  
+  n_points_aux = 0;
   
   i = threadIdx.x;
   
-  k1 = h*(dydx[i].a*x0[i] + dydx[i].b*y0[i] + dydx[i].c);
-  k2 = h*(dydx[i].a*(x0[i] + h/2.0) + dydx[i].b*(y0[i] + k1/2.0) + dydx[i].c);
-  k3 = h*(dydx[i].a*(x0[i] + h/2.0) + dydx[i].b*(y0[i] + k2/2.0) + dydx[i].c);
-  k4 = h*(dydx[i].a*(x0[i] + h) + dydx[i].b*(y0[i] + k3) + dydx[i].c);
-  y1[i] = y0[i] + k1/6.0 + k2/3.0 + k3/3.0 + k4/6.0;
-}*/
+  set( &initial, v0[i] );
+  set( &direction, field[cuda_offset(n_x, n_y, initial.x, initial.y, initial.z)] );
+  
+  while(floor(module(direction)) > 0.0 && n_points_aux < MAX_POINTS){
+    n_points_aux++;
+        
+    set( &(points[cuda_offset(count_v0, 0, i, n_points_aux - 1, 0)]), initial );
+  
+    set( &k1, mult_scalar( direction, h ) );
+    set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
+    set( &k3, sum( mult_scalar(k2, 0.5), mult_scalar( direction, h ) ) );
+    set( &k4, sum( k3, mult_scalar( direction, h ) ) );
+    
+    set( &initial, sum( initial, sum( mult_scalar( k1 , 1.0/6.0 ), sum( mult_scalar( k2, 1.0/3.0 ), sum( mult_scalar( k3, 1.0/3.0 ), mult_scalar( k4, 1.0/6.0 ) ) ) ) ) );
+    set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
+  }
+  
+  n_points[i] = n_points_aux;
+  n_points_aux = 0;
+}
+
+/***********/
+/* Callers */
+/***********/
 
 void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
   vector *d_v0;
   vector_field d_field;
-  vector **d_points;
-  int *d_n_points;
+  vector *d_points, *points_aux;
+  int *d_n_points, *n_points_aux;
   int i, j;
   
   cudaMalloc(&d_v0, count_v0*sizeof(vector));
   cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector));
-  cudaMalloc(&d_points, count_v0*sizeof(vector *));
+  cudaMalloc(&d_points, count_v0*MAX_POINTS*sizeof(vector));
   cudaMalloc(&d_n_points, count_v0*sizeof(int));
   
   cudaMemcpy(d_v0, v0, count_v0*sizeof(vector), cudaMemcpyHostToDevice);
@@ -131,40 +196,62 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   /*TODO: adjust threads per block to maximize performance*/
   rk2_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points);
   
-  cudaMemcpy(*n_points, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
-  cudaMemcpy(*points, d_points, count_v0*sizeof(vector *), cudaMemcpyDeviceToHost);
-  for(i = 0; i < count_v0; i++)
-    cudaMemcpy((*points)[i], d_points[i], (*n_points)[i]*sizeof(vector), cudaMemcpyDeviceToHost);
+  n_points_aux = (int *) malloc(count_v0*sizeof(int));
+  points_aux = (vector *) malloc(count_v0*MAX_POINTS*sizeof(vector));;
+  
+  cudaMemcpy(n_points_aux, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(points_aux, d_points, count_v0*MAX_POINTS*sizeof(vector), cudaMemcpyDeviceToHost);
+  
+  *points = (vector **) malloc(count_v0*sizeof(vector *));
+  for(i = 0; i < count_v0; i++){
+    (*points)[i] = (vector *) malloc(n_points_aux[i]*sizeof(vector));
+    for(j = 0; j < n_points_aux[i]; j++)
+      (*points)[i][j] = points_aux[offset(count_v0, 0, i, j, 0)];
+  }
+  
+  *n_points = n_points_aux;
   
   cudaFree(d_v0);
   cudaFree(d_field);
-  for(i = 0; i < count_v0; i++)
-    cudaFree(d_points[i]);
   cudaFree(d_points);
   cudaFree(d_n_points);
 }
 
-/*void rk4_caller(double *x0, double *y0, int n, double h, fof *dydx, double *y1){
-  double *d_x0;
-  double *d_y0;
-  fof *d_dydx;
-  double *d_y1;
+void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+  vector *d_v0;
+  vector_field d_field;
+  vector *d_points, *points_aux;
+  int *d_n_points, *n_points_aux;
+  int i, j;
   
-  cudaMalloc(&d_x0, n*sizeof(double));
-  cudaMalloc(&d_y0, n*sizeof(double));
-  cudaMalloc(&d_dydx, n*sizeof(fof));
-  cudaMalloc(&d_y1, n*sizeof(double));
+  cudaMalloc(&d_v0, count_v0*sizeof(vector));
+  cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector));
+  cudaMalloc(&d_points, count_v0*MAX_POINTS*sizeof(vector));
+  cudaMalloc(&d_n_points, count_v0*sizeof(int));
   
-  cudaMemcpy(d_x0, x0, n*sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_y0, y0, n*sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_dydx, dydx, n*sizeof(fof), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_v0, v0, count_v0*sizeof(vector), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_field, field, n_x*n_y*n_z*sizeof(vector), cudaMemcpyHostToDevice);
   
-  rk4_kernel<<<1,n>>>(d_x0, d_y0, h, d_dydx, d_y1);
+  /*TODO: adjust threads per block to maximize performance*/
+  rk4_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points);
   
-  cudaMemcpy(y1, d_y1, n*sizeof(double), cudaMemcpyDeviceToHost);
+  n_points_aux = (int *) malloc(count_v0*sizeof(int));
+  points_aux = (vector *) malloc(count_v0*MAX_POINTS*sizeof(vector));;
   
-  cudaFree(d_x0);
-  cudaFree(d_y0);
-  cudaFree(d_y1);
-  cudaFree(d_dydx);
-}*/
+  cudaMemcpy(n_points_aux, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(points_aux, d_points, count_v0*MAX_POINTS*sizeof(vector), cudaMemcpyDeviceToHost);
+  
+  *points = (vector **) malloc(count_v0*sizeof(vector *));
+  for(i = 0; i < count_v0; i++){
+    (*points)[i] = (vector *) malloc(n_points_aux[i]*sizeof(vector));
+    for(j = 0; j < n_points_aux[i]; j++)
+      (*points)[i][j] = points_aux[offset(count_v0, 0, i, j, 0)];
+  }
+  
+  *n_points = n_points_aux;
+  
+  cudaFree(d_v0);
+  cudaFree(d_field);
+  cudaFree(d_points);
+  cudaFree(d_n_points);
+}

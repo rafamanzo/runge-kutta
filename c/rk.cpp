@@ -3,7 +3,7 @@
 #include<math.h>
 #include<stdio.h>
 #include "../vector_field.h"
-#include "../rk3d.h"
+#include "../rk.h"
 #include "vector_operations.h"
 
 vector nearest_neighbour(vector v0, int n_x, int n_y, int n_z, vector_field field){
@@ -27,12 +27,10 @@ vector nearest_neighbour(vector v0, int n_x, int n_y, int n_z, vector_field fiel
   else
     z = (int) floor(v0.z);
 
-  if(x >= n_x || y >= n_y || z >= n_z || x < 0 || y < 0 || z < 0){
+  if(x >= n_x || y >= n_y || z >= n_z || x < 0 || y < 0 || z < 0)
     return zero;
-  }else{
-    printf("\n%d %d %d %f %f %f", x, y, z, field[offset(n_x, n_y, x, y, z)].x, field[offset(n_x, n_y, x, y, z)].y, field[offset(n_x, n_y, x, y, z)].z);
+  else
     return field[offset(n_x, n_y, x, y, z)];
-  }
 }
 
 vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_field field){
@@ -55,11 +53,6 @@ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_fiel
     yd = (v0.y - y0)/(y1 - y0);
     zd = (v0.z - z0)/(z1 - z0);
     
-    printf("\n%d %d %d %f %f %f", x0, y0, z0, field[offset(n_x, n_y, x0, y0, z0)].x, field[offset(n_x, n_y, x0, y0, z0)].y, field[offset(n_x, n_y, x0, y0, z0)].z);
-    printf("\n%d %d %d %f %f %f", x0, y1, z0, field[offset(n_x, n_y, x0, y1, z0)].x, field[offset(n_x, n_y, x0, y1, z0)].y, field[offset(n_x, n_y, x0, y1, z0)].z);
-    printf("\n%d %d %d %f %f %f", x1, y0, z0, field[offset(n_x, n_y, x1, y0, z0)].x, field[offset(n_x, n_y, x1, y0, z0)].y, field[offset(n_x, n_y, x1, y0, z0)].z);
-    printf("\n%d %d %d %f %f %f", x1, y1, z0, field[offset(n_x, n_y, x1, y1, z0)].x, field[offset(n_x, n_y, x1, y1, z0)].y, field[offset(n_x, n_y, x1, y1, z0)].z);
-    
     set(&i1, sum( mult_scalar(field[offset(n_x, n_y, x0, y0, z0)], (1.0 - zd)), mult_scalar(field[offset(n_x, n_y, x0, y0, z1)], zd) ) );
     set(&i2, sum( mult_scalar(field[offset(n_x, n_y, x0, y1, z0)], (1.0 - zd)), mult_scalar(field[offset(n_x, n_y, x0, y1, z1)], zd) ) );
     set(&j1, sum( mult_scalar(field[offset(n_x, n_y, x1, y0, z0)], (1.0 - zd)), mult_scalar(field[offset(n_x, n_y, x1, y0, z1)], zd) ) );
@@ -80,12 +73,14 @@ void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
   points_aux = NULL;
   n_points_aux = 0;
   
+  *points = (vector **) malloc(count_v0*sizeof(vector *));
+  *n_points = (int *) malloc(count_v0*sizeof(int));
+  
   for(i = 0; i < count_v0; i++){
     set( &initial, v0[i] );
     set( &direction, field[offset(n_x, n_y, initial.x, initial.y, initial.z)] );
     
     while(floor(module(direction)) > 0.0){
-      printf("\n%f %f %f %f %f %f", initial.x, initial.y, initial.z, direction.x, direction.y, direction.z);
       n_points_aux++;
       points_aux = (vector *) realloc(points_aux, n_points_aux*sizeof(vector));
           
@@ -112,6 +107,9 @@ void rk4(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
   
   points_aux = NULL;
   n_points_aux = 0;
+  
+  *points = (vector **) malloc(count_v0*sizeof(vector *));
+  *n_points = (int *) malloc(count_v0*sizeof(int));
   
   for(i = 0; i < count_v0; i++){
     set( &initial, v0[i] );

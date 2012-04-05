@@ -1,34 +1,36 @@
 #include<stdlib.h>
 #include<stdio.h>
-#include "first_order_function.h"
+#include<string.h>
+#include "vector_field.h"
 #include "input.h"
 
-void parseFile(char *file, int *n, double *h, double **x0, double **y0, fof **dydx){
+void parseFile(char *file, int *n_x, int *n_y, int *n_z, double *h, vector **v0, int *v0_count, vector_field *field){
   FILE *fp;
-  double *x0_aux, *y0_aux;
-  fof *dydx_aux;
-  int i;
-  
+  int i, j, k;
   fp = fopen(file, "r");
   
-  fscanf(fp, "%d", n);
-  fscanf(fp, "%lf", h); 
+  fscanf(fp, "%d", n_x);
+  fscanf(fp, "%d", n_y);
+  fscanf(fp, "%d", n_z);
   
-  x0_aux = (double *) malloc((*n)*sizeof(double));
-  y0_aux = (double *) malloc((*n)*sizeof(double));
-  dydx_aux = (fof *) malloc((*n)*sizeof(fof));
-  
-  for(i = 0; i < (*n); i++){
-    fscanf(fp, "%lf", &x0_aux[i]);
-    fscanf(fp, "%lf", &y0_aux[i]);
-    fscanf(fp, "%lf", &dydx_aux[i].a);
-    fscanf(fp, "%lf", &dydx_aux[i].b);
-    fscanf(fp, "%lf", &dydx_aux[i].c);
+  fscanf(fp, "%d", v0_count);
+  *v0 = (vector *) malloc( (*v0_count)*sizeof(vector) );
+  for(i = 0; i < *v0_count; i++){
+    fscanf(fp, "%lf", &(((*v0)[i]).x));
+    fscanf(fp, "%lf", &(((*v0)[i]).y));
+    fscanf(fp, "%lf", &(((*v0)[i]).z));
   }
+  fscanf(fp, "%lf", h);
   
-  *x0 = x0_aux;
-  *y0 = y0_aux;
-  *dydx = dydx_aux;
+  *field = (vector_field) malloc( (*n_x)*(*n_y)*(*n_z)*sizeof(vector) );
   
-  fclose(fp);
+  for(k = 0; k < *n_z; k++){
+    for(i = 0; i < *n_x; i++){
+      for(j = 0; j < *n_y; j++){
+        fscanf(fp, "%lf", &(((*field)[offset(*n_x, *n_y, i, j, k)]).x));
+        fscanf(fp, "%lf", &(((*field)[offset(*n_x, *n_y, i, j, k)]).y));
+        fscanf(fp, "%lf", &(((*field)[offset(*n_x, *n_y, i, j, k)]).z));
+      }
+    }
+  }
 }

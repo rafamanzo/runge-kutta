@@ -3,20 +3,25 @@
 #include "vector_field.h"
 #include "output.h"
 
-void generate_gnuplot_input(int n_x, int n_y, int n_z, int n_points_rk2, vector *points_rk2, int n_points_rk4, vector *points_rk4){
+void generate_gnuplot_input(int n_x, int n_y, int n_z, int v0_count, int *n_points_rk2, vector **points_rk2, int *n_points_rk4, vector **points_rk4){
   FILE *rk2_dat, *rk4_dat, *rk2_vs_rk4;
-  int i;
+  int i,k;
   
   rk2_dat = fopen("rk2.dat", "w");
   rk4_dat = fopen("rk4.dat", "w");
   rk2_vs_rk4 = fopen("rk2-vs-rk4.p", "w");
   
-  for(i = 0; i < n_points_rk2; i++)
-    fprintf(rk2_dat, "%f %f %f\n", points_rk2[i].x, points_rk2[i].y, points_rk2[i].z);
-  fclose(rk2_dat);
+  for(k = 0; k < v0_count; k++){
+    for(i = 0; i < n_points_rk2[k]; i++)
+      fprintf(rk2_dat, "%f %f %f\n", points_rk2[k][i].x, points_rk2[k][i].y, points_rk2[k][i].z);
+    fprintf(rk2_dat, "\n");
+    
+    for(i = 0; i < n_points_rk4[k]; i++)
+      fprintf(rk4_dat, "%f %f %f\n", points_rk4[k][i].x, points_rk4[k][i].y, points_rk4[k][i].z);
+    fprintf(rk4_dat, "\n");
+  }
   
-  for(i = 0; i < n_points_rk4; i++)
-    fprintf(rk4_dat, "%f %f %f\n", points_rk4[i].x, points_rk4[i].y, points_rk4[i].z);
+  fclose(rk2_dat);
   fclose(rk4_dat);
   
   fprintf(rk2_vs_rk4, "set xrange[0:%d]\n", n_x - 1);
