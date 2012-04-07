@@ -184,6 +184,11 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   vector *d_points, *points_aux;
   int *d_n_points, *n_points_aux;
   int i, j;
+  cudaEvent_t start, finish;
+  float time;
+    
+  cudaEventCreate(&start);
+  cudaEventCreate(&finish);
   
   cudaMalloc(&d_v0, count_v0*sizeof(vector));
   cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector));
@@ -193,8 +198,19 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   cudaMemcpy(d_v0, v0, count_v0*sizeof(vector), cudaMemcpyHostToDevice);
   cudaMemcpy(d_field, field, n_x*n_y*n_z*sizeof(vector), cudaMemcpyHostToDevice);
   
+  cudaEventRecord(start, 0);
+  
   /*TODO: adjust threads per block to maximize performance*/
   rk2_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points);
+  
+  cudaEventRecord(finish, 0);
+  cudaEventSynchronize(finish);
+  
+  cudaEventElapsedTime(&time, start, finish);
+  cudaEventDestroy(start);
+  cudaEventDestroy(finish);
+  
+  printf("GPU time for RK2: %fs\n", time/1000.0);
   
   n_points_aux = (int *) malloc(count_v0*sizeof(int));
   points_aux = (vector *) malloc(count_v0*MAX_POINTS*sizeof(vector));;
@@ -223,6 +239,11 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   vector *d_points, *points_aux;
   int *d_n_points, *n_points_aux;
   int i, j;
+  cudaEvent_t start, finish;
+  float time;
+    
+  cudaEventCreate(&start);
+  cudaEventCreate(&finish);
   
   cudaMalloc(&d_v0, count_v0*sizeof(vector));
   cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector));
@@ -235,8 +256,19 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   /*TODO: adjust threads per block to maximize performance*/
   rk4_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points);
   
+  cudaEventRecord(start, 0);
+  
+  cudaEventRecord(finish, 0);
+  cudaEventSynchronize(finish);
+  
+  cudaEventElapsedTime(&time, start, finish);
+  cudaEventDestroy(start);
+  cudaEventDestroy(finish);
+  
+  printf("GPU time for RK4: %fs\n", time/1000.0);
+  
   n_points_aux = (int *) malloc(count_v0*sizeof(int));
-  points_aux = (vector *) malloc(count_v0*MAX_POINTS*sizeof(vector));;
+  points_aux = (vector *) malloc(count_v0*MAX_POINTS*sizeof(vector));
   
   cudaMemcpy(n_points_aux, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
   cudaMemcpy(points_aux, d_points, count_v0*MAX_POINTS*sizeof(vector), cudaMemcpyDeviceToHost);

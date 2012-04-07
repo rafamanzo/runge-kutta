@@ -1,5 +1,6 @@
 #include<stdlib.h>
 #include<stdio.h>
+#include<time.h>
 #include<math.h>
 #include<stdio.h>
 #include "../vector_field.h"
@@ -69,12 +70,15 @@ void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
   vector k1, k2, initial, direction;
   vector *points_aux;
   int i, n_points_aux;
+  clock_t start, finish;
   
   points_aux = NULL;
   n_points_aux = 0;
   
   *points = (vector **) malloc(count_v0*sizeof(vector *));
   *n_points = (int *) malloc(count_v0*sizeof(int));
+
+  start = clock();
   
   for(i = 0; i < count_v0; i++){
     set( &initial, v0[i] );
@@ -98,18 +102,25 @@ void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
     points_aux = NULL;
     n_points_aux = 0;
   }
+  
+  finish = clock();
+  
+  printf("CPU time for RK2: %fs\n", ((double) (finish - start))/CLOCKS_PER_SEC);
 }
 
 void rk4(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
   vector k1, k2, k3, k4, initial, direction;
   vector *points_aux;
   int i, n_points_aux;
+  clock_t start, finish;
   
   points_aux = NULL;
   n_points_aux = 0;
   
   *points = (vector **) malloc(count_v0*sizeof(vector *));
   *n_points = (int *) malloc(count_v0*sizeof(int));
+  
+  start = clock();
   
   for(i = 0; i < count_v0; i++){
     set( &initial, v0[i] );
@@ -135,4 +146,7 @@ void rk4(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
     points_aux = NULL;
     n_points_aux = 0;
   }
+  
+  finish = clock();
+  printf("CPU time for RK4: %fs\n", ((double) (finish - start))/CLOCKS_PER_SEC);
 }

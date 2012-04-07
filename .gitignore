@@ -6,6 +6,7 @@ core
 example
 example3d
 rotationField
+randomField
 a.out
 out
 plot.dat
