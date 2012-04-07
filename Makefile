@@ -39,6 +39,7 @@ rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h vector_field.h
 #OTHER
 examples:
 	php example-factories/rotation.php
+	php example-factories/random.php
 
 clean_compiling_results:
 	rm -f *.o rk
@@ -50,6 +51,6 @@ clean_others:
 	rm -f *~ c/*~ cuda/*~ opencl/*~
 	
 clean_examples:
-	rm -f rotationField
+	rm -f rotationField randomField
   
 clean: clean_compiling_results clean_others clean_plot clean_examples
