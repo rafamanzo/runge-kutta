@@ -5,7 +5,7 @@
   $dim_z = 256;
   $h = 0.1;
 
-  for($i = 0; $i < 10000; $i++)
+  for($i = 0; $i < 256; $i++)
     $v0[] = rand(0,255)." ".rand(0,255)." ".rand(0,255);
 
   $out = fopen("randomField", "w");

@@ -116,7 +116,7 @@ __device__ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, 
 /* Kernels */
 /***********/
 
-__global__ void rk2_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector *points, int *n_points){
+__global__ void rk2_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector *points, int *n_points, int max_points){
   /*TODO: moving the field to the shared memory should increase performance*/
   vector k1, k2, initial, direction;
   int i, n_points_aux;
@@ -128,7 +128,7 @@ __global__ void rk2_kernel(vector *v0, int count_v0, double h, int n_x, int n_y,
   set( &initial, v0[i] );
   set( &direction, field[cuda_offset(n_x, n_y, initial.x, initial.y, initial.z)] );
   
-  while(floor(module(direction)) > 0.0 && n_points_aux < MAX_POINTS){
+  while(floor(module(direction)) > 0.0 && n_points_aux < max_points){
     n_points_aux++;
         
     set( &(points[cuda_offset(count_v0, 0, i, n_points_aux - 1, 0)]), initial );
@@ -144,7 +144,7 @@ __global__ void rk2_kernel(vector *v0, int count_v0, double h, int n_x, int n_y,
   n_points_aux = 0;
 }
 
-__global__ void rk4_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector *points, int *n_points){
+__global__ void rk4_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector *points, int *n_points, int max_points){
   /*TODO: moving the field to the shared memory should increase performance*/
   vector k1, k2, k3, k4, initial, direction;
   int i, n_points_aux;
@@ -156,7 +156,7 @@ __global__ void rk4_kernel(vector *v0, int count_v0, double h, int n_x, int n_y,
   set( &initial, v0[i] );
   set( &direction, field[cuda_offset(n_x, n_y, initial.x, initial.y, initial.z)] );
   
-  while(floor(module(direction)) > 0.0 && n_points_aux < MAX_POINTS){
+  while(floor(module(direction)) > 0.0 && n_points_aux < max_points){
     n_points_aux++;
         
     set( &(points[cuda_offset(count_v0, 0, i, n_points_aux - 1, 0)]), initial );
@@ -171,7 +171,6 @@ __global__ void rk4_kernel(vector *v0, int count_v0, double h, int n_x, int n_y,
   }
   
   n_points[i] = n_points_aux;
-  n_points_aux = 0;
 }
 
 /***********/
@@ -183,25 +182,39 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   vector_field d_field;
   vector *d_points, *points_aux;
   int *d_n_points, *n_points_aux;
-  int i, j;
+  int i, j, max_points;
   cudaEvent_t start, finish;
   float time;
+  size_t available, total;
     
   cudaEventCreate(&start);
   cudaEventCreate(&finish);
   
-  cudaMalloc(&d_v0, count_v0*sizeof(vector));
-  cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector));
-  cudaMalloc(&d_points, count_v0*MAX_POINTS*sizeof(vector));
-  cudaMalloc(&d_n_points, count_v0*sizeof(int));
+  cudaEventRecord(start, 0);
+  
+  if(cudaMalloc(&d_v0, count_v0*sizeof(vector)) == cudaErrorMemoryAllocation)
+    exit(-1);
+  if(cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector)) == cudaErrorMemoryAllocation)
+    exit(-1);
+  if(cudaMalloc(&d_n_points, count_v0*sizeof(int)) == cudaErrorMemoryAllocation)
+    exit(-1);
+  cudaMemGetInfo(&available, &total);
+  max_points = ((available*0.9)/(sizeof(vector)*count_v0));
+  if(cudaMalloc(&d_points, count_v0*max_points*sizeof(vector)) == cudaErrorMemoryAllocation)
+    exit(-1);
   
   cudaMemcpy(d_v0, v0, count_v0*sizeof(vector), cudaMemcpyHostToDevice);
   cudaMemcpy(d_field, field, n_x*n_y*n_z*sizeof(vector), cudaMemcpyHostToDevice);
   
-  cudaEventRecord(start, 0);
-  
   /*TODO: adjust threads per block to maximize performance*/
-  rk2_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points);
+  rk2_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points, max_points);
+  cudaDeviceSynchronize();
+  
+  n_points_aux = (int *) malloc(count_v0*sizeof(int));
+  points_aux = (vector *) malloc(count_v0*max_points*sizeof(vector));;
+  
+  cudaMemcpy(n_points_aux, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(points_aux, d_points, count_v0*max_points*sizeof(vector), cudaMemcpyDeviceToHost);
   
   cudaEventRecord(finish, 0);
   cudaEventSynchronize(finish);
@@ -211,12 +224,6 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   cudaEventDestroy(finish);
   
   printf("GPU time for RK2: %fs\n", time/1000.0);
-  
-  n_points_aux = (int *) malloc(count_v0*sizeof(int));
-  points_aux = (vector *) malloc(count_v0*MAX_POINTS*sizeof(vector));;
-  
-  cudaMemcpy(n_points_aux, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
-  cudaMemcpy(points_aux, d_points, count_v0*MAX_POINTS*sizeof(vector), cudaMemcpyDeviceToHost);
   
   *points = (vector **) malloc(count_v0*sizeof(vector *));
   for(i = 0; i < count_v0; i++){
@@ -238,25 +245,40 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   vector_field d_field;
   vector *d_points, *points_aux;
   int *d_n_points, *n_points_aux;
-  int i, j;
+  int i, j, max_points;
   cudaEvent_t start, finish;
   float time;
-    
+  size_t available, total;
+
   cudaEventCreate(&start);
   cudaEventCreate(&finish);
   
-  cudaMalloc(&d_v0, count_v0*sizeof(vector));
-  cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector));
-  cudaMalloc(&d_points, count_v0*MAX_POINTS*sizeof(vector));
-  cudaMalloc(&d_n_points, count_v0*sizeof(int));
+  cudaEventRecord(start, 0);
+  
+  if(cudaMalloc(&d_v0, count_v0*sizeof(vector)) == cudaErrorMemoryAllocation)
+    exit(-1);
+  if(cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector)) == cudaErrorMemoryAllocation)
+    exit(-1);
+  if(cudaMalloc(&d_n_points, count_v0*sizeof(int)) == cudaErrorMemoryAllocation)
+    exit(-1);
+  cudaMemGetInfo(&available, &total);
+  max_points = ((available*0.9)/(sizeof(vector)*count_v0));
+  if(cudaMalloc(&d_points, count_v0*max_points*sizeof(vector)) == cudaErrorMemoryAllocation)
+    exit(-1);
   
   cudaMemcpy(d_v0, v0, count_v0*sizeof(vector), cudaMemcpyHostToDevice);
   cudaMemcpy(d_field, field, n_x*n_y*n_z*sizeof(vector), cudaMemcpyHostToDevice);
   
-  /*TODO: adjust threads per block to maximize performance*/
-  rk4_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points);
   
-  cudaEventRecord(start, 0);
+  /*TODO: adjust threads per block to maximize performance*/
+  rk4_kernel<<<1,count_v0>>>(d_v0, count_v0, h, n_x, n_y, n_z, d_field, d_points, d_n_points, max_points);
+  cudaDeviceSynchronize();
+  
+  n_points_aux = (int *) malloc(count_v0*sizeof(int));
+  points_aux = (vector *) malloc(count_v0*max_points*sizeof(vector));
+  
+  cudaMemcpy(n_points_aux, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(points_aux, d_points, count_v0*max_points*sizeof(vector), cudaMemcpyDeviceToHost);
   
   cudaEventRecord(finish, 0);
   cudaEventSynchronize(finish);
@@ -267,17 +289,12 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   
   printf("GPU time for RK4: %fs\n", time/1000.0);
   
-  n_points_aux = (int *) malloc(count_v0*sizeof(int));
-  points_aux = (vector *) malloc(count_v0*MAX_POINTS*sizeof(vector));
-  
-  cudaMemcpy(n_points_aux, d_n_points, count_v0*sizeof(int), cudaMemcpyDeviceToHost);
-  cudaMemcpy(points_aux, d_points, count_v0*MAX_POINTS*sizeof(vector), cudaMemcpyDeviceToHost);
-  
   *points = (vector **) malloc(count_v0*sizeof(vector *));
   for(i = 0; i < count_v0; i++){
     (*points)[i] = (vector *) malloc(n_points_aux[i]*sizeof(vector));
-    for(j = 0; j < n_points_aux[i]; j++)
+    for(j = 0; j < n_points_aux[i]; j++){
       (*points)[i][j] = points_aux[offset(count_v0, 0, i, j, 0)];
+    }
   }
   
   *n_points = n_points_aux;

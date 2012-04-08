@@ -75,10 +75,10 @@ void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
   points_aux = NULL;
   n_points_aux = 0;
   
+  start = clock();
+  
   *points = (vector **) malloc(count_v0*sizeof(vector *));
   *n_points = (int *) malloc(count_v0*sizeof(int));
-
-  start = clock();
   
   for(i = 0; i < count_v0; i++){
     set( &initial, v0[i] );
@@ -117,11 +117,11 @@ void rk4(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_f
   points_aux = NULL;
   n_points_aux = 0;
   
-  *points = (vector **) malloc(count_v0*sizeof(vector *));
-  *n_points = (int *) malloc(count_v0*sizeof(int));
-  
   start = clock();
   
+  *points = (vector **) malloc(count_v0*sizeof(vector *));
+  *n_points = (int *) malloc(count_v0*sizeof(int));
+    
   for(i = 0; i < count_v0; i++){
     set( &initial, v0[i] );
     set( &direction, field[offset(n_x, n_y, initial.x, initial.y, initial.z)] );

@@ -1,5 +1,5 @@
 .PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda c
-COMPUTE_CAPABILITY=-arch compute_20
+COMPUTE_CAPABILITY=-arch sm_20
 
 #default C++ version
 c: main.o rk_c.o input.o vector_operations_c.o vector_field.o output.o
