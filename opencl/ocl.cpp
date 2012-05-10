@@ -24,8 +24,8 @@ unsigned int opencl_create_platform(unsigned int num_platforms){
   printf("Num Plat == %d\n\n", num_platforms_found); 
   if ( clGetPlatformIDs( num_platforms, &platform, &num_platforms_found ) == CL_SUCCESS ){
     /* As duas linhas abaixo sao usadas para teste. */
-    clGetPlatformInfo( platform, CL_PLATFORM_NAME, MAXSTR, &name, NULL );
-    printf("Nome da plataforma %s\n",name);  
+    //clGetPlatformInfo( platform, CL_PLATFORM_NAME, MAXSTR, &name, NULL );
+    //printf("Nome da plataforma %s\n",name);  
     return num_platforms_found;
   }
   else
@@ -119,50 +119,52 @@ int opencl_create_program(char* program_path){
   return buildProgram();
 }
 
-int opencl_create_kernel(char* kernel_name) {
+void opencl_create_kernel(char* kernel_name){
   cl_int err;
+
   kernel = clCreateKernel( program, (const char*) kernel_name, &err);
 
-  if ( err == CL_SUCCESS )
-    return 1;
-  else
-    return -1;
+  if ( kernel == NULL ){
+    printf("ERROR: Failed to create kernel %s.\n",kernel_name);
+    exit(-1);
+  }
 }
 
-void prepare_kernel() {
+void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points) {
 
-  /* Criacao dos buffers que o OpenCL vai usar. */
+  opencl_create_kernel(kernel_name);
+  /* Validar permissoes */
   points = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*field.n_x*field.n_y*field.n_z, field.vectors, NULL);
   out = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(vector)*field.n_x*field.n_y*field.n_z, NULL, NULL);
 
-  clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&field.vectors[0][0][0]);
+  /* Validar sizeof*/
+  clSetKernelArg(kernel, 0, sizeof(cl_mem), v0);
   clSetKernelArg(kernel, 1, sizeof(cl_mem), count_v0);/*Definir count_v0*/
-  clSetKernelArg(kernel, 2, sizeof(cl_mem), field.h;
-  clSetKernelArg(kernel, 3, sizeof(cl_mem), field.n_x);
-  clSetKernelArg(kernel, 4, sizeof(cl_mem), field.n_y);
-  clSetKernelArg(kernel, 5, sizeof(cl_mem), field..n_z);
+  clSetKernelArg(kernel, 2, sizeof(cl_mem), h;
+  clSetKernelArg(kernel, 3, sizeof(cl_mem), n_x);
+  clSetKernelArg(kernel, 4, sizeof(cl_mem), n_y);
+  clSetKernelArg(kernel, 5, sizeof(cl_mem), n_z);
   clSetKernelArg(kernel, 6, sizeof(cl_mem), field);
-  clSetKernelArg(kernel, 7, sizeof(cl_mem), (void *)&out);
-  clSetKernelArg(kernel, 8, sizeof(cl_mem), (field.n_x*field.n_y*field.n_z));
+  clSetKernelArg(kernel, 7, sizeof(cl_mem), points); //validar
+  clSetKernelArg(kernel, 8, sizeof(cl_mem), n_points); //validar
 
   clFinish(queue);
 }
 
-void opencl_run_kernel(char *path){
+void opencl_run_kernel(char *file_out){
+  FILE *f;
   size_t work_dim[3];
   int i;
-  FILE *f;
 
   work_dim[0] = field.n_x;
   work_dim[1] = field.n_y;
   work_dim[2] = field.n_z;
 
-  if( (f = fopen(path,"w")) == NULL){
-    printf("ERROR: Failed to open file %s.\n",path);
+  if( (f = fopen(file_out,"w")) == NULL){
+    printf("ERROR: Failed to open file %s.\n",file_out);
     exit(-1);
   }
-  
-  prepare_kernel();
+
   clEnqueueNDRangeKernel(queue, kernel, 3, NULL, work_dim, NULL, 0, NULL, &event);
   clReleaseEvent(event);
   clFinish(queue);

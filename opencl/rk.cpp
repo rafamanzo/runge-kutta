@@ -1,7 +1,12 @@
 #include <stdio.h>
-#include "opcl.h"
+#include<stdlib.h>
+#include "ocl.h"
+#include "../vector_field.h"
+#include "../rk.h"
+//#include "rk_kernel.h"
 
-int iniciar_opencl() {
+/* deve ir para ocl.ccp e receber kernel_name*/
+int opencl_init(){
   unsigned int num_platforms, num_devices;
 
   printf("\n");
@@ -45,22 +50,19 @@ int iniciar_opencl() {
   else printf("Programa criado com sucesso!\n");
   printf("\n");
 
-  printf("Iniciando a criacao do kernel...\n");
-  if ( opencl_create_kernel("matrixmulti") <= 0 ) {
-    printf("Erro na criacao do kernel\n");
-    return -1;
-
-  else printf("kernel criado com sucesso!\n");
-  printf("\n");
   return 1;
 }
 
-int main() {
-  
-  if ( iniciar_opencl() == 1 ) {
-    printf("Platafoma do OpenCL criada com sucesso, iniciando a multiplica����o das matrizes...\n");
-    opencl_run_kernel();
-  }
-  return 0;
+
+void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+  opencl_init();
+  prepare_kernel("rk2_kernel",v0,count_v0,h,n_x,n_y,n_z,field,points,n_points);
+  opencl_run_kernel(saida);//definir arquivo de saida
 }
 
+void rk4(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+  opencl_init();
+  prepare_kernel("rk4_kernel",v0,count_v0,h,n_x,n_y,n_z,field,points,n_points);
+  opencl_run_kernel();//definir arquivo de saida
+
+}
