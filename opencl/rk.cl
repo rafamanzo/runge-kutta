@@ -140,7 +140,6 @@ __kernel void rk4_kernel(vector *v0, int count_v0, double h, int n_x, int n_y, i
     n_points_aux++;
         
     set( &(points[opencl_offset(count_v0, 0, i, n_points_aux - 1, 0)]), initial );
-  
     set( &k1, mult_scalar( direction, h ) );
     set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
     set( &k3, sum( mult_scalar(k2, 0.5), mult_scalar( direction, h ) ) );
