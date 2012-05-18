@@ -59,52 +59,41 @@ unsigned int opencl_create_platform(unsigned int num_platforms){
   int num_platforms_found;
   
   clGetPlatformIDs( 0, NULL, (cl_uint*)&num_platforms_found);
-  printf("Num Plat == %d\n\n", num_platforms_found); 
-  if ( clGetPlatformIDs( num_platforms, &platform, (cl_uint*)&num_platforms_found ) == CL_SUCCESS ){
-    /* As duas linhas abaixo sao usadas para teste. */
-    //clGetPlatformInfo( platform, CL_PLATFORM_NAME, MAXSTR, &name, NULL );
-    //printf("Nome da plataforma %s\n",name);  
-    return num_platforms_found;
+  if ( clGetPlatformIDs( num_platforms, &platform, (cl_uint*)&num_platforms_found ) != CL_SUCCESS ){
+    printf("\nERROR: Failed to create plataform.\n");
+    exit(-1);
   }
-  else
-    return -1;
+  return num_platforms_found;
 }
 
 unsigned int opencl_get_devices_id(cl_device_type device_type) {
   unsigned int vendor_id;
   
-  /* Achando o numero de devices na maquina */
   clGetDeviceIDs(platform, device_type, 0, NULL, &devices_found);
   devices = (cl_device_id*) malloc(devices_found*(sizeof(cl_device_id)));
   
-  if(clGetDeviceIDs( platform, device_type, devices_found, devices, NULL) == CL_SUCCESS){
-    /* As duas linhas abaixo sao usadas para teste. 
-    clGetDeviceInfo( devices, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(unsigned int), &vendor_id, NULL );
-    printf("Vendor ID do Device %d\n",vendor_id); */
-    return devices_found;
+  if(clGetDeviceIDs( platform, device_type, devices_found, devices, NULL) != CL_SUCCESS){
+    printf("\nERROR: Failed to get devices id's.\n");
+    exit(-1);
   }
-  else
-    return -1;
+  return devices_found;
 }
 
-int opencl_create_context(){
-  if( (context = clCreateContext( 0, 1, devices, NULL, NULL, NULL )) != NULL ){
-    return 1;
+void opencl_create_context(){
+  if( (context = clCreateContext( 0, 1, devices, NULL, NULL, NULL )) == NULL ){
+    printf("\nERROR: Failed to create context.\n");
+    exit(-1);
   }
-  else 
-    return -1;
 }
 
-int opencl_create_queue() {
-  if((queue = clCreateCommandQueue(context, devices[device_used], 0, NULL)) != NULL ){
-    return 1;
+void opencl_create_queue(){
+  if((queue = clCreateCommandQueue(context, devices[device_used], 0, NULL)) == NULL ){
+    printf("\nERROR: Failed to create queue.\n");
+    exit(-1);
   }
-  else 
-    return -1;
 }
 
-/* Funcoes auxiliares para a criacao do program */
-char* loadProgramFromSource(char* program_path, int *size) {
+char* load_program_from_source(char* program_path, int *size) {
   char* program_string;
   FILE* prog;
 
@@ -121,53 +110,56 @@ char* loadProgramFromSource(char* program_path, int *size) {
   return program_string;
 }
 
-int buildProgram() {
+void opencl_build_program(){
   int err;
   char *build_log;
   size_t ret_val_size;
                 
-  err = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
+  err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
   if ( err != CL_SUCCESS ) {
-    test_err(err);
+    printf("\nERROR: Failed to build program.\n");
+    test_err(err); /* RETIRAR */
     clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
     build_log = (char*) malloc((ret_val_size+1)*sizeof(char));
     clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
     build_log[ret_val_size] = '\0';
-
-    printf("BUILD LOG: \n %s", build_log);
-    printf("program built\n");
-    return -1;
+    printf("BUILD LOG: \n %s\n", build_log);
+    exit(-1);
   }
-  else
-    return 1;
 }
 /* Fim das funcoes auxiliares para a criacao do program */
 
-int opencl_create_program(char* program_path){
+void opencl_create_program(char* program_path){
   char* program_source;
   int size;
   size_t prog_size;
   cl_int err;
   
-  program_source = loadProgramFromSource(program_path, &size);
+  program_source = load_program_from_source(program_path, &size);
   prog_size = (size_t)size;
   program = clCreateProgramWithSource(context, 1, (const char**)&program_source, &prog_size, &err);
-  if ( err != CL_SUCCESS )
-    printf("ERROR %d.\n",err);
-  return buildProgram();
+  if ( err != CL_SUCCESS ){
+    printf("\nERROR: Failed to create program.\n");
+    exit(-1);
+  }
 }
 
 void opencl_create_kernel(char* kernel_name){
   cl_int err;
 
-  kernel = clCreateKernel( program, (const char*) kernel_name, &err);
-
+  kernel = clCreateKernel( program, "rk4_kernel", &err);
   if ( kernel == NULL ){
-    printf("ERROR: Failed to create kernel %s.\n",kernel_name);
+    printf("\nERROR: Failed to create kernel %s.\n",kernel_name);
     exit(-1);
   }
 }
+/*int opencl_create_kernel(char* kernel_name) {
+  cl_int err;
+  kernel = clCreateKernel( program, (const char*) kernel_name, &err);
+  if ( err == CL_SUCCESS ) return 1;
+  else return -1;
+}*/
 
 void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points) {
 
@@ -199,9 +191,45 @@ void opencl_run_kernel(int n_x, int n_y, int n_z){
   clFinish(queue);
 
   if( clEnqueueReadBuffer(queue, out, CL_TRUE, 0, n_x*n_y*n_z, &out, 0, NULL, &event) == CL_INVALID_VALUE ) 
-	  printf("ERROR: Failed to read buffer.\n");
+	  printf("\nERROR: Failed to read buffer.\n");
   clReleaseEvent(event);
 
   //for( i = 0; i < n_x*n_y*n_z; i++ )
   //  printf("%f %f %f\n", out[i].x,out[i].y,out[i].z);
+}
+
+void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+  unsigned int num_platforms, num_devices;
+
+  printf("Starting OpenCL platform...");
+  num_platforms =  opencl_create_platform(2); 
+  printf(" Num Plataformas = %d OK.\n", num_platforms);
+   
+  printf("Starting search for devices...\n");
+  num_devices = opencl_get_devices_id(CL_DEVICE_TYPE_GPU);
+  printf(" Num devices = %d OK.\n", num_devices);
+
+  printf("Starting context creation...");
+  opencl_create_context();
+  printf(" OK.\n");
+    
+  printf("Starting queue creation...");
+  opencl_create_queue();
+  printf(" OK.\n");
+  
+  printf("Starting program creation...");
+  opencl_create_program((char*)"opencl/rk.cl");
+  printf(" OK.\n");
+
+  printf("Start building the program...");
+  opencl_build_program();
+  printf(" OK.\n");
+  
+  printf("Start preparing the kernel...");
+  prepare_kernel((char*)"rk4_kernel",v0,count_v0,h,n_x,n_y,n_z,field,points,n_points);
+  printf(" OK.\n");
+
+  printf("Start running the kernel...");
+  opencl_run_kernel(n_x,n_y,n_z);
+  printf(" OK.\n");
 }
