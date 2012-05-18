@@ -1,4 +1,4 @@
-.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda c gtest
+.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda c gtest clean_library
 
 #vars
 CUDA_FLAGS=-arch sm_20
@@ -88,14 +88,18 @@ rk_kernel_tests.o: tests/units/rk_kernel_tests.cpp tests/fixtures/rk_kernel_fixt
 	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/units/rk_kernel_tests.cpp
 
 #OpenCL
-opencl: main.o input.o vector_field.o output.o rk_opencl.o ocl.o
-	g++ main.o input.o rk_opencl.o vector_field.o output.o ocl.o -o rk -lm -I${OPENCL_INCLUDE} -framework OpenCL
+opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a ocl.o
+	g++ main.o input.o rk_opencl.o  vector_field.o output.o ocl.o librk.a -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
 	
-rk_opencl.o: ocl.o opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
-	g++ -c opencl/rk.cpp opencl/rk.cl -o rk_opencl.o
+rk_opencl.o: opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
+	g++ -c opencl/rk.cpp  -o rk_opencl.o -I${OPENCL_INCLUDE}
+
+librk.a: ocl.o
+	ar cr librk.a  ocl.o
+	ranlib librk.a
 
 ocl.o: opencl/ocl.cpp opencl/ocl.h vector_field.h
-	g++ -c opencl/ocl.cpp -o ocl.o
+	g++ -c opencl/ocl.cpp -o ocl.o -I${OPENCL_INCLUDE}
 
 #OTHER
 examples:
@@ -120,4 +124,7 @@ clean_tests:
 	rm -f libgtest.a gtest-1.6.0.zip
 	rm -rf gtest-1.6.0
 
-clean: clean_compiling_results clean_others clean_plot
+clean_library:
+	rm -f librk.a
+  
+clean: clean_compiling_results clean_others clean_plot clean_examples clean_library
