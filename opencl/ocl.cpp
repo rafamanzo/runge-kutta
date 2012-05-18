@@ -11,7 +11,7 @@ cl_command_queue queue;
 cl_kernel kernel;
 cl_program program;
 cl_event event;
-cl_mem points, out;
+cl_mem in, out;
 
 /* Informacoes sobre os devices */
 unsigned int devices_found;
@@ -23,7 +23,7 @@ unsigned int opencl_create_platform(unsigned int num_platforms){
   
   clGetPlatformIDs( 0, NULL, (cl_uint*)&num_platforms_found);
   printf("Num Plat == %d\n\n", num_platforms_found); 
-  if ( clGetPlatformIDs( num_platforms, &platform, &num_platforms_found ) == CL_SUCCESS ){
+  if ( clGetPlatformIDs( num_platforms, &platform, (cl_uint*)&num_platforms_found ) == CL_SUCCESS ){
     /* As duas linhas abaixo sao usadas para teste. */
     //clGetPlatformInfo( platform, CL_PLATFORM_NAME, MAXSTR, &name, NULL );
     //printf("Nome da plataforma %s\n",name);  
@@ -38,7 +38,7 @@ unsigned int opencl_get_devices_id(cl_device_type device_type) {
   
   /* Achando o numero de devices na maquina */
   clGetDeviceIDs(platform, device_type, 0, NULL, &devices_found);
-  devices = malloc(devices_found*(sizeof(cl_device_id)));
+  devices = (cl_device_id*) malloc(devices_found*(sizeof(cl_device_id)));
   
   if(clGetDeviceIDs( platform, device_type, devices_found, devices, NULL) == CL_SUCCESS){
     /* As duas linhas abaixo sao usadas para teste. 
@@ -76,7 +76,7 @@ char* loadProgramFromSource(char* program_path, int *size) {
   *size = ftell(prog);
   fseek(prog, 0, SEEK_SET);
 
-  program_string = malloc((*size+1)*sizeof(char));
+  program_string = (char*) malloc((*size+1)*sizeof(char));
   *size = fread(program_string, 1, *size, prog);
   fclose(prog);
   program_string[*size] = '\0';
@@ -93,7 +93,7 @@ int buildProgram() {
   if ( err != CL_SUCCESS ) {
     clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
-    build_log = malloc((ret_val_size+1)*sizeof(char));
+    build_log = (char*) malloc((ret_val_size+1)*sizeof(char));
     clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
     build_log[ret_val_size] = '\0';
 
@@ -134,19 +134,18 @@ void opencl_create_kernel(char* kernel_name){
 void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points) {
 
   opencl_create_kernel(kernel_name);
-  /* Validar permissoes */
-  points = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*n_x*n_y*n_z, field, NULL);
-  out = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(vector)*n_x*n_y*n_z, NULL, NULL);
+  in = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(vector)*n_x*n_y*n_z,(void*)&field, NULL);
+  out = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(vector)*n_x*n_y*n_z, NULL, NULL);
 
   clSetKernelArg(kernel, 0, sizeof(cl_mem), v0);
-  clSetKernelArg(kernel, 1, sizeof(cl_mem), count_v0);
-  clSetKernelArg(kernel, 2, sizeof(cl_mem), h;
-  clSetKernelArg(kernel, 3, sizeof(cl_mem), n_x);
-  clSetKernelArg(kernel, 4, sizeof(cl_mem), n_y);
-  clSetKernelArg(kernel, 5, sizeof(cl_mem), n_z);
-  clSetKernelArg(kernel, 6, sizeof(cl_mem), field);
-  clSetKernelArg(kernel, 7, sizeof(cl_mem), points); //validar
-  clSetKernelArg(kernel, 8, sizeof(cl_mem), n_points); //validar
+  clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&count_v0);
+  clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&h);
+  clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&n_x);
+  clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&n_y);
+  clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&n_z);
+  clSetKernelArg(kernel, 6, sizeof(cl_mem), in);
+  clSetKernelArg(kernel, 7, sizeof(cl_mem), out); 
+  clSetKernelArg(kernel, 8, sizeof(cl_mem), n_points);
 
   clFinish(queue);
 }
@@ -165,6 +164,6 @@ void opencl_run_kernel(int n_x, int n_y, int n_z){
 	  printf("ERROR: Failed to read buffer.\n");
   clReleaseEvent(event);
 
-  for( i = 0; i < n_x*n_y*n_z; i++ ){
-    printf("%f %f %f\n", out[i].x,out[i].y,out[i].z);
+  //for( i = 0; i < n_x*n_y*n_z; i++ )
+  //  printf("%f %f %f\n", out[i].x,out[i].y,out[i].z);
 }
