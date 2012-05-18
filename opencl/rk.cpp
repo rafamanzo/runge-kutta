@@ -1,9 +1,7 @@
 #include <stdio.h>
-#include<stdlib.h>
+#include <stdlib.h>
 #include "ocl.h"
-#include "../vector_field.h"
 #include "../rk.h"
-//#include "rk_kernel.h"
 
 /* deve ir para ocl.ccp e receber kernel_name*/
 int opencl_init(){
@@ -43,11 +41,11 @@ int opencl_init(){
   printf("\n");
 
   printf("Iniciando a criacao do programa...\n");
-  if ( opencl_create_program("matrixmulti.cl") <= 0 ) {
-    printf("Erro na criacao do programa\n");
-    return -1;
-  }
-  else printf("Programa criado com sucesso!\n");
+//  if ( opencl_create_program("matrixmulti.cl") <= 0 ) {
+//    printf("Erro na criacao do programa\n");
+//    return -1;
+//  }
+//  else printf("Programa criado com sucesso!\n");
   printf("\n");
 
   return 1;

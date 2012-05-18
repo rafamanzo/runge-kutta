@@ -153,19 +153,17 @@ void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int 
 
 void opencl_run_kernel(char *file_out){
   FILE *f;
-  size_t work_dim[3];
+  size_t work_dim[1];
   int i;
 
-  work_dim[0] = field.n_x;
-  work_dim[1] = field.n_y;
-  work_dim[2] = field.n_z;
+  work_dim[0] = field.n_x*field.n_y*field.n_z;
 
   if( (f = fopen(file_out,"w")) == NULL){
     printf("ERROR: Failed to open file %s.\n",file_out);
     exit(-1);
   }
 
-  clEnqueueNDRangeKernel(queue, kernel, 3, NULL, work_dim, NULL, 0, NULL, &event);
+  clEnqueueNDRangeKernel(queue, kernel, 1, NULL, work_dim, NULL, 0, NULL, &event);
   clReleaseEvent(event);
   clFinish(queue);
 

@@ -87,6 +87,16 @@ rk_kernel_fixture.o: include/dataset.h tests/fixtures/rk_kernel_fixture.cpp test
 rk_kernel_tests.o: tests/units/rk_kernel_tests.cpp tests/fixtures/rk_kernel_fixture.cpp include/dataset.h include/fiber.h include/rk_c_kernel.h
 	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/units/rk_kernel_tests.cpp
 
+#OpenCL
+opencl: main.o input.o vector_field.o output.o rk_opencl.o ocl.o
+	gcc main.o input.o rk_opencl.o vector_field.o output.o ocl.o -o rk -lm
+	
+rk_opencl.o: opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
+	gcc -c opencl/rk.cpp -o rk_opencl.o
+
+ocl.o: opencl/ocl.cpp opencl/ocl.h vector_field.h
+	gcc -c opencl/rk.cpp -o ocl.o 
+
 #OTHER
 examples:
 	php example-factories/rotation.php
