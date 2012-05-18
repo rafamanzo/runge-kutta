@@ -134,12 +134,11 @@ void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int 
 
   opencl_create_kernel(kernel_name);
   /* Validar permissoes */
-  points = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*field.n_x*field.n_y*field.n_z, field.vectors, NULL);
-  out = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(vector)*field.n_x*field.n_y*field.n_z, NULL, NULL);
+  points = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*n_x*n_y*n_z, field.vectors, NULL);
+  out = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(vector)*n_x*n_y*n_z, NULL, NULL);
 
-  /* Validar sizeof*/
   clSetKernelArg(kernel, 0, sizeof(cl_mem), v0);
-  clSetKernelArg(kernel, 1, sizeof(cl_mem), count_v0);/*Definir count_v0*/
+  clSetKernelArg(kernel, 1, sizeof(cl_mem), count_v0);
   clSetKernelArg(kernel, 2, sizeof(cl_mem), h;
   clSetKernelArg(kernel, 3, sizeof(cl_mem), n_x);
   clSetKernelArg(kernel, 4, sizeof(cl_mem), n_y);
@@ -151,27 +150,20 @@ void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int 
   clFinish(queue);
 }
 
-void opencl_run_kernel(char *file_out){
-  FILE *f;
+void opencl_run_kernel(int n_x, int n_y, int n_z){
   size_t work_dim[1];
   int i;
 
-  work_dim[0] = field.n_x*field.n_y*field.n_z;
-
-  if( (f = fopen(file_out,"w")) == NULL){
-    printf("ERROR: Failed to open file %s.\n",file_out);
-    exit(-1);
-  }
+  work_dim[0] = n_x*n_y*n_z;
 
   clEnqueueNDRangeKernel(queue, kernel, 1, NULL, work_dim, NULL, 0, NULL, &event);
   clReleaseEvent(event);
   clFinish(queue);
 
-  if( clEnqueueReadBuffer(queue, out, CL_TRUE, 0, field.n_x*field.n_y*field.n_z, &out, 0, NULL, &event) == CL_INVALID_VALUE ) 
+  if( clEnqueueReadBuffer(queue, out, CL_TRUE, 0, n_x*n_y*n_z, &out, 0, NULL, &event) == CL_INVALID_VALUE ) 
 	  printf("ERROR: Failed to read buffer.\n");
   clReleaseEvent(event);
 
-  for( i = 0; i < N_X*N_Y*N_Z; i++ ){
-    fprintf(f,"%f %f %f\n", out[i].x,out[i].y,out[i].z);
-  fclose(f);
+  for( i = 0; i < n_x*n_y*n_z; i++ ){
+    printf("%f %f %f\n", out[i].x,out[i].y,out[i].z);
 }
