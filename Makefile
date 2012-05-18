@@ -88,8 +88,8 @@ rk_kernel_tests.o: tests/units/rk_kernel_tests.cpp tests/fixtures/rk_kernel_fixt
 	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/units/rk_kernel_tests.cpp
 
 #OpenCL
-opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a ocl.o
-	g++ main.o input.o rk_opencl.o  vector_field.o output.o ocl.o librk.a -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
+opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a 
+	g++ main.o input.o rk_opencl.o vector_field.o output.o librk.a -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
 	
 rk_opencl.o: opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
 	g++ -c opencl/rk.cpp  -o rk_opencl.o -I${OPENCL_INCLUDE}
