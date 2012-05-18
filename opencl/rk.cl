@@ -1,5 +1,6 @@
+#include <CL/opencl.h>
 #include <math.h>
-#include "vector_field.h"
+#include "../vector_field.h"
 
 /* Verificar se está correto?*/
 int opencl_offset(int n_x, int n_y, int x, int y, int z){
