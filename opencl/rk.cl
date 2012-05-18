@@ -1,4 +1,4 @@
-#include <CL/opencl.h>
+#include "CL/opencl.h"
 #include <math.h>
 #include "../vector_field.h"
 
