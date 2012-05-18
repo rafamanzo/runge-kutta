@@ -41,11 +41,11 @@ int opencl_init(){
   printf("\n");
 
   printf("Iniciando a criacao do programa...\n");
-//  if ( opencl_create_program("matrixmulti.cl") <= 0 ) {
-//    printf("Erro na criacao do programa\n");
-//    return -1;
-//  }
-//  else printf("Programa criado com sucesso!\n");
+  if ( opencl_create_program("rk.cl") <= 0 ) {
+    printf("Erro na criacao do programa\n");
+    return -1;
+  }
+  else printf("Programa criado com sucesso!\n");
   printf("\n");
 
   return 1;

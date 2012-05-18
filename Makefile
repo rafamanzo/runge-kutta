@@ -1,4 +1,4 @@
-.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda c
+.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples clean_library examples cuda c
 COMPUTE_CAPABILITY=-arch sm_20
 
 #default C++ version
@@ -37,14 +37,18 @@ rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h vector_field.h
 	nvcc -c cuda/rk.cpp -o rk_cuda.o ${COMPUTE_CAPABILITY}
 
 #OpenCL
-opencl: main.o input.o vector_field.o output.o rk_opencl.o ocl.o
-	g++ main.o input.o rk_opencl.o vector_field.o output.o ocl.o -o rk -lm -I${OPENCL_INCLUDE} -framework OpenCL
+opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a ocl.o
+	g++ main.o input.o rk_opencl.o  vector_field.o output.o ocl.o librk.a -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
 	
-rk_opencl.o: ocl.o opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
-	g++ -c opencl/rk.cpp opencl/rk.cl -o rk_opencl.o
+rk_opencl.o: opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
+	g++ -c opencl/rk.cpp  -o rk_opencl.o -I${OPENCL_INCLUDE}
+
+librk.a: ocl.o
+	ar cr librk.a  ocl.o
+	ranlib librk.a
 
 ocl.o: opencl/ocl.cpp opencl/ocl.h vector_field.h
-	g++ -c opencl/ocl.cpp -o ocl.o
+	g++ -c opencl/ocl.cpp -o ocl.o -I${OPENCL_INCLUDE}
 
 #OTHER
 examples:
@@ -62,5 +66,8 @@ clean_others:
 	
 clean_examples:
 	rm -f rotationField randomField
+
+clean_library:
+	rm -f librk.a
   
-clean: clean_compiling_results clean_others clean_plot clean_examples
+clean: clean_compiling_results clean_others clean_plot clean_examples clean_library
