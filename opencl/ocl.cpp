@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "ocl.h"
 
 /* Objetos do Open CL */
@@ -17,10 +18,10 @@ unsigned int devices_found;
 unsigned int device_used = 0;
 
 unsigned int opencl_create_platform(unsigned int num_platforms){
-  char name[MAXSTR];
+  char name[512];
   int num_platforms_found;
   
-  clGetPlatformIDs( 0, NULL, &num_platforms_found);
+  clGetPlatformIDs( 0, NULL, (cl_uint*)&num_platforms_found);
   printf("Num Plat == %d\n\n", num_platforms_found); 
   if ( clGetPlatformIDs( num_platforms, &platform, &num_platforms_found ) == CL_SUCCESS ){
     /* As duas linhas abaixo sao usadas para teste. */
@@ -134,7 +135,7 @@ void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int 
 
   opencl_create_kernel(kernel_name);
   /* Validar permissoes */
-  points = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*n_x*n_y*n_z, field.vectors, NULL);
+  points = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*n_x*n_y*n_z, field, NULL);
   out = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(vector)*n_x*n_y*n_z, NULL, NULL);
 
   clSetKernelArg(kernel, 0, sizeof(cl_mem), v0);
