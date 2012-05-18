@@ -87,14 +87,14 @@ float3 trilinear_interpolation(float3 v0, int n_x, int n_y, int n_z, __global fl
   }
 }
 
-__kernel void rk2_kernel(__global float3 *v0, int count_v0, double h, int n_x, int n_y, int n_z, __global float3 *field, __global float3 *points, int __global *n_points, int max_points){
+/*__kernel void rk2_kernel(__global float3 *v0, int count_v0, double h, int n_x, int n_y, int n_z, __global float3 *field, __global float3 *points, int __global *n_points, int max_points){
   float3 k1, k2, initial, direction;
   float3 *points_aux;
   int i, n_points_aux;
   
   points_aux = 0;
   n_points_aux = 0;
-  i = get___global_id(0);
+  i = get_global_id(0);
 
   initial = v0[i].xyz;
   direction = field[opencl_offset(n_x,n_y,initial.x,initial.y,initial.z)].xyz;
@@ -112,7 +112,7 @@ __kernel void rk2_kernel(__global float3 *v0, int count_v0, double h, int n_x, i
   } 
   n_points[i] = n_points_aux;
   n_points_aux = 0;
-}
+}*/
 
 __kernel void rk4_kernel(__global float3 *v0, int count_v0, double h, int n_x, int n_y, int n_z, __global float3 *field, __global float3 *points, __global int *n_points, int max_points){
   float3 k1, k2, k3, k4, initial, direction;
@@ -120,7 +120,7 @@ __kernel void rk4_kernel(__global float3 *v0, int count_v0, double h, int n_x, i
   
   n_points_aux = 0;
   
-  i = get___global_id(0);
+  i = get_global_id(0);
   
   initial = v0[i].xyz;
   direction = field[opencl_offset(n_x,n_y,initial.x,initial.y,initial.z)].xyz;
