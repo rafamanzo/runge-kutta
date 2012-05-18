@@ -41,7 +41,7 @@ int opencl_init(){
   printf("\n");
 
   printf("Iniciando a criacao do programa...\n");
-  if ( opencl_create_program("rk.cl") <= 0 ) {
+  if ( opencl_create_program("opencl/rk.cl") <= 0 ) {
     printf("Erro na criacao do programa\n");
     return -1;
   }
