@@ -17,6 +17,43 @@ cl_mem in, out;
 unsigned int devices_found;
 unsigned int device_used = 0;
 
+
+void test_err(cl_int err){
+  
+  switch(err){
+    case CL_INVALID_PROGRAM:
+      printf("CL_INVALID_PROGRAM\n");
+      break;
+    case CL_INVALID_VALUE:
+      printf("CL_INVALID_VALUE\n");
+      break;
+    case CL_INVALID_DEVICE:
+      printf("CL_INVALID_DEVICE\n");
+      break;
+    case CL_INVALID_BINARY:
+      printf("CL_INVALID_BINARY\n");
+      break;
+    case CL_INVALID_BUILD_OPTIONS:
+      printf("CL_INVALID_BUILD_OPTIONS\n");
+      break;
+    case CL_INVALID_OPERATION:
+      printf("CL_INVALID_OPERATION\n");
+      break;
+    case CL_COMPILER_NOT_AVAILABLE:
+      printf("CL_COMPILER_NOT_AVAILABLE\n");
+      break;
+    case CL_BUILD_PROGRAM_FAILURE:
+      printf("CL_BUILD_PROGRAM_FAILURE\n");
+      break;
+    case CL_OUT_OF_HOST_MEMORY:
+      printf("CL_OUT_OF_HOST_MEMORY\n");
+      break;
+    default:
+      printf("Unknow error\n");
+      break;
+  }
+}
+
 unsigned int opencl_create_platform(unsigned int num_platforms){
   char name[512];
   int num_platforms_found;
@@ -89,8 +126,9 @@ int buildProgram() {
   char *build_log;
   size_t ret_val_size;
                 
-  err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+  err = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
   if ( err != CL_SUCCESS ) {
+    test_err(err);
     clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
     build_log = (char*) malloc((ret_val_size+1)*sizeof(char));
