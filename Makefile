@@ -38,13 +38,13 @@ rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h vector_field.h
 
 #OpenCL
 opencl: main.o input.o vector_field.o output.o rk_opencl.o ocl.o
-	gcc main.o input.o rk_opencl.o vector_field.o output.o ocl.o -o rk -lm
+	g++ main.o input.o rk_opencl.o vector_field.o output.o ocl.o -o rk -lm -I${OPENCL_INCLUDE} -framework OpenCL
 	
 rk_opencl.o: ocl.o opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
-	gcc -c opencl/rk.cpp opencl/rk.cl -o rk_opencl.o -I${OPENCL_INCLUDE} -l OpenCl
+	g++ -c opencl/rk.cpp opencl/rk.cl -o rk_opencl.o
 
 ocl.o: opencl/ocl.cpp opencl/ocl.h vector_field.h
-	gcc -c opencl/ocl.cpp -o ocl.o -I${OPENCL_INCLUDE} -l OpenCl
+	g++ -c opencl/ocl.cpp -o ocl.o
 
 #OTHER
 examples:
