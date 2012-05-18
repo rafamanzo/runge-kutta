@@ -37,8 +37,8 @@ rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h vector_field.h
 	nvcc -c cuda/rk.cpp -o rk_cuda.o ${COMPUTE_CAPABILITY}
 
 #OpenCL
-opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a ocl.o
-	g++ main.o input.o rk_opencl.o  vector_field.o output.o ocl.o librk.a -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
+opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a 
+	g++ main.o input.o rk_opencl.o vector_field.o output.o librk.a -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
 	
 rk_opencl.o: opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
 	g++ -c opencl/rk.cpp  -o rk_opencl.o -I${OPENCL_INCLUDE}
