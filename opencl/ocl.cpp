@@ -11,48 +11,10 @@ cl_command_queue queue;
 cl_kernel kernel;
 cl_program program;
 cl_event event;
-cl_mem in, out;
-
+cl_mem v_initial, fld, pts, n_pts;
 /* Informacoes sobre os devices */
 unsigned int devices_found;
 unsigned int device_used = 0;
-
-
-void test_err(cl_int err){
-  
-  switch(err){
-    case CL_INVALID_PROGRAM:
-      printf("CL_INVALID_PROGRAM\n");
-      break;
-    case CL_INVALID_VALUE:
-      printf("CL_INVALID_VALUE\n");
-      break;
-    case CL_INVALID_DEVICE:
-      printf("CL_INVALID_DEVICE\n");
-      break;
-    case CL_INVALID_BINARY:
-      printf("CL_INVALID_BINARY\n");
-      break;
-    case CL_INVALID_BUILD_OPTIONS:
-      printf("CL_INVALID_BUILD_OPTIONS\n");
-      break;
-    case CL_INVALID_OPERATION:
-      printf("CL_INVALID_OPERATION\n");
-      break;
-    case CL_COMPILER_NOT_AVAILABLE:
-      printf("CL_COMPILER_NOT_AVAILABLE\n");
-      break;
-    case CL_BUILD_PROGRAM_FAILURE:
-      printf("CL_BUILD_PROGRAM_FAILURE\n");
-      break;
-    case CL_OUT_OF_HOST_MEMORY:
-      printf("CL_OUT_OF_HOST_MEMORY\n");
-      break;
-    default:
-      printf("Unknow error\n");
-      break;
-  }
-}
 
 unsigned int opencl_create_platform(unsigned int num_platforms){
   char name[512];
@@ -118,7 +80,6 @@ void opencl_build_program(){
   err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
   if ( err != CL_SUCCESS ) {
     printf("\nERROR: Failed to build program.\n");
-    test_err(err); /* RETIRAR */
     clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
     build_log = (char*) malloc((ret_val_size+1)*sizeof(char));
@@ -154,48 +115,89 @@ void opencl_create_kernel(char* kernel_name){
     exit(-1);
   }
 }
-/*int opencl_create_kernel(char* kernel_name) {
-  cl_int err;
-  kernel = clCreateKernel( program, (const char*) kernel_name, &err);
-  if ( err == CL_SUCCESS ) return 1;
-  else return -1;
-}*/
+
 
 void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points) {
+  cl_int err;
 
   opencl_create_kernel(kernel_name);
-  in = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(vector)*n_x*n_y*n_z,(void*)&field, NULL);
-  out = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(vector)*n_x*n_y*n_z, NULL, NULL);
+  v_initial = clCreateBuffer(context, CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR, sizeof(vector)*count_v0,(void*)&v0, NULL); 
+  fld = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*n_x*n_y*n_z,(void*)&field, &err);
+  pts = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float3)*n_x*n_y*n_z, NULL, NULL);
+  n_pts = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float3)*count_v0, NULL, NULL);
 
-  clSetKernelArg(kernel, 0, sizeof(cl_mem), v0);
-  clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&count_v0);
-  clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&h);
-  clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&n_x);
-  clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&n_y);
-  clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&n_z);
-  clSetKernelArg(kernel, 6, sizeof(cl_mem), in);
-  clSetKernelArg(kernel, 7, sizeof(cl_mem), out);
-  clSetKernelArg(kernel, 8, sizeof(cl_mem), (void*)&n_points);printf("AQUI!\n");
-printf("AQUI!\n");
-  clFinish(queue);
+printf("Antes!\n");
+
+  if(v_initial == NULL)
+    printf("v_initial is NULL\n");
+  if(fld == NULL)
+    printf("fld is NULL err = %d\n",err);
+  if( err == CL_OUT_OF_HOST_MEMORY)
+    printf("CL_OUT_OF_HOST_MEMORY\n");
+  if(pts == NULL)
+    printf("pts is NULL\n");
+  if(n_pts == NULL)
+    printf("n_pts is NULL\n");
+
+  /*n_pts = (cl_float3*) malloc(sizeof(cl_float3)*count_v0);
+  for( i = 0; i < count_v0; i++){
+    n_pts[i].x = (float)v0[i].x;
+    n_pts[i].y = (float)v0[i].y;
+    n_pts[i].z = (float)v0[i].z;
+  }
+    
+  entrada = (cl_float3*) malloc(sizeof(cl_float3)*n_x*n_y*n_z);
+  for( i = 0; i < count_v0; i++){
+    entrada[i].x = (float)field[i].x;
+    entrada[i].y = (float)field[i].y;
+    entrada[i].z = (float)field[i].z;
+  }*/
+  if( clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&v_initial) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 0.\n");
+  if( clSetKernelArg(kernel, 1, sizeof(int), (void*)&count_v0) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 1.\n");
+  if( clSetKernelArg(kernel, 2, sizeof(double), (void*)&h) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 2.\n");
+  if( clSetKernelArg(kernel, 3, sizeof(int), (void*)&n_x) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 3.\n");
+  if( clSetKernelArg(kernel, 4, sizeof(int), (void*)&n_y) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 4.\n");
+  if( clSetKernelArg(kernel, 5, sizeof(int), (void*)&n_z) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 5.\n");
+  if( clSetKernelArg(kernel, 6, sizeof(cl_mem), (void*)&fld) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 6.\n");
+  if( clSetKernelArg(kernel, 7, sizeof(cl_mem), (void*)&pts) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 7.\n");
+  if( clSetKernelArg(kernel, 8, sizeof(cl_mem), (void*)&n_pts) != CL_SUCCESS)
+    printf("ERROR: Failed to set kernel argument 8.\n");
+printf("Depois!\n");
+  clFinish(queue);//colocar na fila?!
 }
 
-void opencl_run_kernel(int n_x, int n_y, int n_z){
+void opencl_run_kernel(int n_x, int n_y, int n_z, int count_v0){
   size_t work_dim[1];
-  int i;
+  int i; cl_int err;
 
   work_dim[0] = n_x*n_y*n_z;
 
   clEnqueueNDRangeKernel(queue, kernel, 1, NULL, work_dim, NULL, 0, NULL, &event);
   clReleaseEvent(event);
   clFinish(queue);
+printf("INSIDE\n");
+  //validar funcao abaixo
+  if( (err = clEnqueueReadBuffer(queue, pts, CL_TRUE, 0, sizeof(vector)*n_x*n_y*n_z, &pts, 0, NULL, &event)) == CL_INVALID_VALUE ){ 
+	  printf("\nERROR: Failed to read buffer pts %d.\n",err);
+    exit(-1);
+  }
+  if( (err = clEnqueueReadBuffer(queue, n_pts, CL_TRUE, 0, sizeof(vector)*count_v0, &n_pts, 0, NULL, &event)) == CL_INVALID_VALUE ){ 
+	  printf("\nERROR: Failed to read buffer n_points %d.\n",err);
+    exit(-1);
+  }
 
-  if( clEnqueueReadBuffer(queue, out, CL_TRUE, 0, n_x*n_y*n_z, &out, 0, NULL, &event) == CL_INVALID_VALUE ) 
-	  printf("\nERROR: Failed to read buffer.\n");
   clReleaseEvent(event);
 
-  //for( i = 0; i < n_x*n_y*n_z; i++ )
-  //  printf("%f %f %f\n", out[i].x,out[i].y,out[i].z);
+ //for( i = 0; i < n_x*n_y*n_z; i++ )
+   //printf("%f %f %f\n", out[i].x,out[i].y,out[i].z);
 }
 
 void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
@@ -203,33 +205,32 @@ void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x,
 
   printf("Starting OpenCL platform...");
   num_platforms =  opencl_create_platform(2); 
-  printf(" Num Plataformas = %d OK.\n", num_platforms);
    
-  printf("Starting search for devices...\n");
+  printf("Searching for devices...\n");
   num_devices = opencl_get_devices_id(CL_DEVICE_TYPE_GPU);
   printf(" Num devices = %d OK.\n", num_devices);
 
-  printf("Starting context creation...");
+  printf("Creating context...");
   opencl_create_context();
   printf(" OK.\n");
     
-  printf("Starting queue creation...");
+  printf("Creating queue...");
   opencl_create_queue();
   printf(" OK.\n");
   
-  printf("Starting program creation...");
+  printf("Creating program...");
   opencl_create_program((char*)"opencl/rk.cl");
   printf(" OK.\n");
 
-  printf("Start building the program...");
+  printf("Building program...");
   opencl_build_program();
   printf(" OK.\n");
   
-  printf("Start preparing the kernel...");
+  printf("Preparing the kernel...");
   prepare_kernel((char*)"rk4_kernel",v0,count_v0,h,n_x,n_y,n_z,field,points,n_points);
   printf(" OK.\n");
 
-  printf("Start running the kernel...");
-  opencl_run_kernel(n_x,n_y,n_z);
+  printf("Running the kernel...");
+  opencl_run_kernel(n_x,n_y,n_z, count_v0);
   printf(" OK.\n");
 }
