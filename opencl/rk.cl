@@ -71,7 +71,8 @@ float3 trilinear_interpolation(float3 v0, int n_x, int n_y, int n_z, __global fl
   
   if(x1 >= n_x || y1 >= n_y || z1 >= n_z || x0 < 0 || y0 < 0 || z0 < 0){
     return nearest_neighbour(v0, n_x, n_y, n_z, field);
-  }else{
+  }
+  else{
     xd = (v0.x - x0)/(x1 - x0);
     yd = (v0.y - y0)/(y1 - y0);
     zd = (v0.z - z0)/(z1 - z0);
@@ -87,7 +88,7 @@ float3 trilinear_interpolation(float3 v0, int n_x, int n_y, int n_z, __global fl
   }
 }
 
-/*__kernel void rk2_kernel(__global float3 *v0, int count_v0, double h, int n_x, int n_y, int n_z, __global float3 *field, __global float3 *points, int __global *n_points, int max_points){
+__kernel void rk2_kernel(__global float3 *v0, int count_v0, double h, int n_x, int n_y, int n_z, __global float3 *field, __global float3 *points, int __global *n_points, int max_points){
   float3 k1, k2, initial, direction;
   float3 *points_aux;
   int i, n_points_aux;
@@ -112,7 +113,7 @@ float3 trilinear_interpolation(float3 v0, int n_x, int n_y, int n_z, __global fl
   } 
   n_points[i] = n_points_aux;
   n_points_aux = 0;
-}*/
+}
 
 __kernel void rk4_kernel(__global float3 *v0, int count_v0, double h, int n_x, int n_y, int n_z, __global float3 *field, __global float3 *points, __global int *n_points, int max_points){
   float3 k1, k2, k3, k4, initial, direction;

@@ -13,3 +13,4 @@ plot.dat
 rk2.dat
 rk4.dat
 rk2-vs-rk4.p
+librk.a
