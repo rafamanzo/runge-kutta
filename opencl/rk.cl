@@ -102,7 +102,7 @@ float3 trilinear_interpolation(float3 v0, int n_x, int n_y, int n_z, __global fl
   while(floor(length(direction)) > 0.0 && n_points_aux < max_points){
     n_points_aux++;
         
-    set( &(points[opencl_offset(count_v0, 0, i, n_points_aux - 1, 0)]), initial );
+    points[opencl_offset(count_v0, 0, i, n_points_aux - 1, 0)] = initial.xyz;
   
     k1 = mult_scalar( direction, h ).xyz;
     k2 = sum(mult_scalar(k1, 0.5), mult_scalar(direction, h)).xyz;
@@ -128,7 +128,7 @@ __kernel void rk4_kernel(__global float3 *v0, int count_v0, double h, int n_x, i
   while(floor(length(direction)) > 0.0 && n_points_aux < max_points){
     n_points_aux++;
         
-    set( &(points[opencl_offset(count_v0, 0, i, n_points_aux - 1, 0)]), initial );
+    points[opencl_offset(count_v0, 0, i, n_points_aux - 1, 0)] = initial.xyz;
     k1 = mult_scalar(direction, h).xyz;
     k2 = sum(mult_scalar(k1,0.5), mult_scalar(direction,h)).xyz;
     k3 = sum(mult_scalar(k2,0.5), mult_scalar(direction, h)).xyz;

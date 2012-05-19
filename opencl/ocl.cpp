@@ -174,9 +174,9 @@ void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int 
   clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&n_y);
   clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&n_z);
   clSetKernelArg(kernel, 6, sizeof(cl_mem), in);
-  clSetKernelArg(kernel, 7, sizeof(cl_mem), out); 
-  clSetKernelArg(kernel, 8, sizeof(cl_mem), n_points);
-
+  clSetKernelArg(kernel, 7, sizeof(cl_mem), out);
+  clSetKernelArg(kernel, 8, sizeof(cl_mem), (void*)&n_points);printf("AQUI!\n");
+printf("AQUI!\n");
   clFinish(queue);
 }
 
