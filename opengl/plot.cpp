@@ -4,7 +4,6 @@
 #include "../vector_field.h"
 #include "plot.h"
 #include "math_operations.h"
-#include "../c/vector_operations.h"
 
 int n_x, n_y, n_z, v0_count, cylinder;
 int *n_points_rk2, *n_points_rk4;
@@ -40,7 +39,7 @@ static void plot_vectors(){
   glColor3d(0,0,1);
   for(i = 0; i < v0_count; i++){
     for(j = 0; j < n_points_rk2[i]; j++){
-      mod = module(points_rk2[i][j]);
+      mod = module2(points_rk2[i][j]);
       glPushMatrix();
         glTranslated((points_rk2[i][j].x/min_rk2)*ratio_rk2,-(points_rk2[i][j].y/min_rk2)*ratio_rk2,(points_rk2[i][j].z/min_rk2)*ratio_rk2);
         if( cylinder == 0)
@@ -59,7 +58,7 @@ static void plot_vectors(){
   glColor3d(1,0,0);
   for(i = 0; i < v0_count; i++){
     for(j = 0; j < n_points_rk4[i]; j++){
-      mod = module(points_rk4[i][j]);
+      mod = module2(points_rk4[i][j]);
       glPushMatrix();
         glTranslated((points_rk4[i][j].x/min_rk4)*ratio_rk4,-(points_rk4[i][j].y/min_rk4)*ratio_rk4,(points_rk4[i][j].z/min_rk4)*ratio_rk4);
         if( cylinder == 0)
@@ -180,7 +179,7 @@ void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
       points_rk2[i][j].x = pts_rk2[i][j].x;
       points_rk2[i][j].y = pts_rk2[i][j].y;
       points_rk2[i][j].z = pts_rk2[i][j].z;
-      mod = module(points_rk2[i][j]);
+      mod = module2(points_rk2[i][j]);
       if( mod > max_rk2)
         max_rk2 = mod;
       else if( mod < min_rk2)
@@ -191,7 +190,7 @@ void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
       points_rk4[i][j].x = pts_rk4[i][j].x;
       points_rk4[i][j].y = pts_rk4[i][j].y;
       points_rk4[i][j].z = pts_rk4[i][j].z;
-      mod = module(points_rk4[i][j]);
+      mod = module2(points_rk4[i][j]);
       if( mod > max_rk2)
         max_rk4 = mod;
       else if( mod < min_rk2)

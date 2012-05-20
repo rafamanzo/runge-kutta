@@ -1,9 +1,9 @@
-#ifdef MACOSX
+#ifdef GNU
+#include <GL/glut.h>
+#else
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
 #endif
 
 #define RADIUS 5

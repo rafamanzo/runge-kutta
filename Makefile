@@ -16,7 +16,7 @@ endif
 
 #default C++ version
 c: main.o rk_c.o input.o vector_operations_c.o vector_field.o output.o plot.o math_operations.o
-	g++ main.o input.o rk_c.o vector_operations_c.o vector_field.o output.o plot.o math_operations.o ${OPENGL_LIB} -o rk
+	g++ main.o input.o rk_c.o vector_operations_c.o vector_field.o output.o plot.o math_operations.o ${OPENGL_LIB} -lm -o rk
 
 #general objects
 	
@@ -32,11 +32,11 @@ output.o: output.cpp output.h vector_field.h
 vector_field.o: vector_field.cpp vector_field.h
 	g++ -c -Wall -ansi -pedantic vector_field.cpp -o vector_field.o
 
-plot.o: opengl/plot.cpp opengl/plot.h vector_field.h c/vector_operations.h opengl/math_operations.h 
-	g++ -c opengl/plot.cpp ${OPENGL_LIB} -o plot.o
+plot.o: opengl/plot.cpp opengl/plot.h vector_field.h opengl/math_operations.h 
+	g++ -c opengl/plot.cpp -o plot.o
 
 math_operations.o: opengl/math_operations.cpp opengl/math_operations.h vector_field.h
-	g++ -c opengl/math_operations.cpp -lm -o math_operations.o
+	g++ -c opengl/math_operations.cpp -o math_operations.o
 
 #C++
 rk_c.o: c/rk.cpp rk.h vector_field.h c/vector_operations.h
