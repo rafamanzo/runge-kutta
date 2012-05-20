@@ -33,8 +33,8 @@ vector_operations_c.o: c/vector_operations.cpp c/vector_operations.h vector_fiel
 	g++ -c -Wall -ansi -pedantic c/vector_operations.cpp -o vector_operations_c.o
 
 #CUDA
-cuda: main.o input.o vector_field.o output.o rk_cuda.o rk_cuda_kernel.o
-	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o vector_field.o output.o -o rk ${COMPUTE_CAPABILITY}
+cuda: main.o input.o vector_field.o output.o rk_cuda.o rk_cuda_kernel.o plot.o math_operations.o
+	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o vector_field.o output.o plot.o math_operations.o -lglut -lGLU -o rk ${COMPUTE_CAPABILITY}
 	
 rk_cuda_kernel.o: cuda/rk.cu cuda/rk_kernel.h vector_field.h
 	nvcc -c cuda/rk.cu -o rk_cuda_kernel.o ${COMPUTE_CAPABILITY}
@@ -43,8 +43,8 @@ rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h vector_field.h
 	nvcc -c cuda/rk.cpp -o rk_cuda.o ${COMPUTE_CAPABILITY}
 
 #OpenCL
-opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a 
-	g++ main.o input.o rk_opencl.o vector_field.o output.o librk.a -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
+opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a plot.o math_operations.o
+	g++ main.o input.o rk_opencl.o vector_field.o output.o librk.a plot.o math_operations.o -lglut -lGLU -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
 	
 rk_opencl.o: opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
 	g++ -c opencl/rk.cpp  -o rk_opencl.o -I${OPENCL_INCLUDE}

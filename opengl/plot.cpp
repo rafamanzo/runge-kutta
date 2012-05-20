@@ -6,8 +6,6 @@
 #include "math_operations.h"
 #include "../c/vector_operations.h"
 
-//double ratio;
-//double max_legth;
 int n_x, n_y, n_z, v0_count;
 int* n_points;
 vector** points;
@@ -27,13 +25,10 @@ static void resize(int width, int height){
 }
 
 static void plot_vectors(){
-  int i, j, k;
+  int i, k;
   double mod;
-  
-  /* variaveis pendentes */
-  int d_x, d_y, d_z ;
+  /* variavel pendentes */
   double r = 5;
-  d_x = d_y = d_z = 1;
 
   glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -48,8 +43,6 @@ static void plot_vectors(){
     for(i = 0; i < n_points[k]; i++){
 
         mod = module(points[k][i]);
-        /*if( mod > max_legth )
-          mod = max_legth;*/
         glPushMatrix();
          glTranslated((points[k][i].x/min)*ratio,-(points[k][i].y/min)*ratio,(points[k][i].z/min)*ratio);
          glRotated(angle_y(points[k][i]),0,1,0);
@@ -96,44 +89,13 @@ void mouse_move(int x, int y){
   glutPostRedisplay();;
 }
 
-void plot_main(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int *n_pts, vector **pts){
-  int i, j;
-  double mod;
+void plot_main(int argc, char *argv[]){
 
-  n_x = nX;
-  n_y = nY;
-  n_z = nZ;
-  v0_count = v0Count;
-  min = nX*nY*nZ;
-  max = -min;
- 
-  n_points = (int*) malloc(sizeof(int)*v0_count);
-  for(i = 0; i < v0_count; i++)
-    n_points[i] = n_pts[i];
-
-  points  = (vector**) malloc(sizeof(vector)*v0_count);
-  for(i = 0; i < v0_count; i++){
-    points[i] = (vector*) malloc(sizeof(vector)*n_points[i]);
-    for(j = 0; j < n_points[i]; j++){
-      points[i][j].x = pts[i][j].x;
-      points[i][j].y = pts[i][j].y;
-      points[i][j].z = pts[i][j].z;
-      mod = module(points[i][j]);
-      if( mod > max)
-        max = mod;
-      else if( mod < min)
-        min = mod;
-    }
-  }  
-  
-
-  //max_legth = sqrt(pow(field.d_x, 2) + pow(field.d_y, 2) + pow(field.d_z, 2));
-  ratio = min/max;///max_legth;
   glutInit(&argc, argv);
   glutInitWindowSize(1024,768);
   glutInitWindowPosition(0,0);
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-  glutCreateWindow("Simulador");
+  glutCreateWindow("Runge-Kutta");
 
   glClearColor(1,1,1,1);
   glEnable(GL_CULL_FACE);
@@ -162,4 +124,37 @@ void plot_main(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
   glutMotionFunc(mouse_move);
   glutMouseFunc(mouse_click);
   glutMainLoop();
+}
+
+void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int *n_pts, vector **pts){
+  int i, j;
+  double mod;
+
+  n_x = nX;
+  n_y = nY;
+  n_z = nZ;
+  v0_count = v0Count;
+  min = nX*nY*nZ;
+  max = -min;
+ 
+  n_points = (int*) malloc(sizeof(int)*v0_count);
+  for(i = 0; i < v0_count; i++)
+    n_points[i] = n_pts[i];
+
+  points  = (vector**) malloc(sizeof(vector)*v0_count);
+  for(i = 0; i < v0_count; i++){
+    points[i] = (vector*) malloc(sizeof(vector)*n_points[i]);
+    for(j = 0; j < n_points[i]; j++){
+      points[i][j].x = pts[i][j].x;
+      points[i][j].y = pts[i][j].y;
+      points[i][j].z = pts[i][j].z;
+      mod = module(points[i][j]);
+      if( mod > max)
+        max = mod;
+      else if( mod < min)
+        min = mod;
+    }
+  }
+  ratio = min/max;
+  plot_main(argc,argv);
 }
