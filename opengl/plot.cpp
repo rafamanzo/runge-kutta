@@ -28,11 +28,10 @@ static void plot_vectors(){
   double mod;
 
   glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+  glPushMatrix();
     glTranslated(-1,-1.0,0.0);
     glRotated(180,0,1,0); 
     glRotated(180,0,0,1);  
-  glPushMatrix();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   /* RK-2 */
@@ -73,7 +72,6 @@ static void plot_vectors(){
     }
   }
   glutSwapBuffers();
-  printf("\nBLUE - Runge-Kutta 2\nRED - Runge-Kutta 4\n");
 }
 
 void mouse_click(int button, int state, int x, int y){
@@ -96,10 +94,10 @@ void mouse_click(int button, int state, int x, int y){
 
 void mouse_move(int x, int y){
   if(left_button == 1){
-    eye_x += (mouse_start_x - x)/*ratio*/;
-    eye_y += (mouse_start_y - y)/**ratio*/;
+    eye_x += (mouse_start_x - x)*ratio_rk2;
+    eye_y += (mouse_start_y - y)*ratio_rk2;
   }else if(right_button == 1){
-    eye_z += (mouse_start_y - y)/*ratio*/;
+    eye_z += (mouse_start_y - y)*ratio_rk2;
   }
   
   mouse_start_x = x;
@@ -139,6 +137,7 @@ void plot_main(int argc, char *argv[]){
   glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
   glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
   glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
+  glLoadIdentity();
 
   glutReshapeFunc(resize);
   glutDisplayFunc(plot_vectors);
@@ -200,5 +199,6 @@ void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
   }
   ratio_rk2 = min_rk2/max_rk2;
   ratio_rk4 = min_rk4/max_rk4;
+  printf("\nBLUE - Runge-Kutta 2\nRED - Runge-Kutta 4\n");
   plot_main(argc,argv);
 }
