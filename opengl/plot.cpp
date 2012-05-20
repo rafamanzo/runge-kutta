@@ -6,20 +6,16 @@
 #include "math_operations.h"
 #include "../c/vector_operations.h"
 
-vector_field field;
-int start;
-int vec;
-double ratio;
-double max_legth;
-double cone_res;
-double sphere_res;
-int n_x, n_y, n_z;
-
+//double ratio;
+//double max_legth;
+int n_x, n_y, n_z, v0_count;
+int* n_points;
+vector** points;
 int left_button = 0;
 int right_button = 0;
 double eye_x = 6.0;
 double eye_y = -6.0;
-double eye_z = -10.0;
+double eye_z = -100.0;
 int mouse_start_x, mouse_start_y;
 
 static void resize(int width, int height){
@@ -33,33 +29,33 @@ static void plot_vectors(){
   
   /* variaveis pendentes */
   int d_x, d_y, d_z ;
-  double max = 0.02;
-  double ratio = 0.2;
-  double r = 0.03;
+  double max = 1;
+  double ratio = 0.001;
+  double r = 1;
   d_x = d_y = d_z = 1;
-  
+
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glColor3d(0,0,1);
- 
-  for(k = 0; k < n_z; k++){
-    for(j = 0; j < n_y; j++){
-      for(i = 0; i < n_x; i++){
-        mod = module(field[offset(n_x,n_y,i,j,k)]);
-        if( mod > max_legth )
-          mod = max_legth;
+
+  for(k = 0; k < v0_count; k++){
+    for(i = 0; i < n_points[k]; i++){
+
+        mod = module(points[k][i]);
+        /*if( mod > max_legth )
+          mod = max_legth;*/
+
         glPushMatrix();
          glTranslated((-n_x/2+i*d_x)*ratio,(-n_y/2+j*d_y)*ratio,(-n_z/2+k*d_z)*ratio);
-          glRotated(angle_y(field[offset(n_x,n_y,i,j,k)]),0,1,0);
-          glRotated(-angle_x(field[offset(n_x,n_y,i,j,k)]),1,0,0); 
-          glRotated(angle_z(field[offset(n_x,n_y,i,j,k)]),0,0,1);
+         glRotated(angle_y(points[k][i]),0,1,0);
+         glRotated(-angle_x(points[k][i]),1,0,0); 
+         glRotated(angle_z(points[k][i]),0,0,1);
          glutSolidCone(pow(r/max,2)*ratio,(mod/max)*ratio,SLICES,STACKS);
         glPopMatrix();
        }
     }
- }
- glutSwapBuffers();
+ glutSwapBuffers();	glFlush();
 }
 
 void mouse_click(int button, int state, int x, int y){
@@ -82,10 +78,10 @@ void mouse_click(int button, int state, int x, int y){
 
 void mouse_move(int x, int y){
   if(left_button == 1){
-    eye_x += (mouse_start_x - x)*ratio;
-    eye_y += (mouse_start_y - y)*ratio;
+    eye_x += (mouse_start_x - x);//*ratio;
+    eye_y += (mouse_start_y - y);//*ratio;
   }else if(right_button == 1){
-    eye_z += (mouse_start_y - y)*ratio;
+    eye_z += (mouse_start_y - y);//*ratio;
   }
   
   mouse_start_x = x;
@@ -96,11 +92,31 @@ void mouse_move(int x, int y){
   plot_vectors();
 }
 
-void draw_main(int argc, char *argv[], int n_x, int n_y, int n_z, int v0_count, int *n_points, vector **points){
+void plot_main(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int *n_pts, vector **pts){
+  int i, j;
+
+  n_x = nX;
+  n_y = nY;
+  n_z = nZ;
+  v0_count = v0Count;
+ 
+  n_points = (int*) malloc(sizeof(int)*v0_count);
+  for(i = 0; i < v0_count; i++)
+    n_points[i] = n_pts[i];
+
+  points  = (vector**) malloc(sizeof(vector)*v0_count);
+  for(i = 0; i < v0_count; i++){
+    points[i] = (vector*) malloc(sizeof(vector)*n_points[i]);
+    for(j = 0; j < n_points[i]; j++){
+      points[i][j].x = pts[i][j].x;
+      points[i][j].y = pts[i][j].y;
+      points[i][j].z = pts[i][j].z;
+    }
+  }  
+  
 
   //max_legth = sqrt(pow(field.d_x, 2) + pow(field.d_y, 2) + pow(field.d_z, 2));
   //ratio = (field.min/field.max)/max_legth;
-  
   glutInit(&argc, argv);
   glutInitWindowSize(1024,768);
   glutInitWindowPosition(0,0);
@@ -128,7 +144,7 @@ void draw_main(int argc, char *argv[], int n_x, int n_y, int n_z, int v0_count, 
   glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
   glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
   glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
-  
+
   glutReshapeFunc(resize);
   glutDisplayFunc(plot_vectors);
   glutMotionFunc(mouse_move);
