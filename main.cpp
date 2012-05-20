@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
   }
   else if( c== '2'){
     //plot_main(argc,argv,n_x,n_y,n_z,v0_count,n_points_rk2, points_rk2);
-    plot_init(argc,argv,n_x,n_y,n_z,v0_count,n_points_rk4, points_rk4);
+    plot_init(argc,argv,n_x,n_y,n_z,v0_count,n_points_rk2, points_rk2, n_points_rk4, points_rk4);
   }
 
   free(v0);

@@ -7,11 +7,11 @@
 #include "../c/vector_operations.h"
 
 int n_x, n_y, n_z, v0_count;
-int* n_points;
-vector** points;
+int *n_points_rk2, *n_points_rk4;
+vector **points_rk2, **points_rk4;
 int left_button = 0;
 int right_button = 0;
-double min, max, ratio;
+double min_rk2, min_rk4, max_rk2, max_rk4, ratio_rk2, ratio_rk4;
 double eye_x = 6.0;
 double eye_y = -6.0;
 double eye_z = -100.0;
@@ -25,7 +25,7 @@ static void resize(int width, int height){
 }
 
 static void plot_vectors(){
-  int i, k;
+  int i, j;
   double mod;
   /* variavel pendentes */
   double r = 5;
@@ -37,21 +37,36 @@ static void plot_vectors(){
     glRotated(180,0,0,1);  
   glPushMatrix();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  /* RK-2 */
   glColor3d(0,0,1);
-
-  for(k = 0; k < v0_count; k++){
-    for(i = 0; i < n_points[k]; i++){
-
-        mod = module(points[k][i]);
-        glPushMatrix();
-         glTranslated((points[k][i].x/min)*ratio,-(points[k][i].y/min)*ratio,(points[k][i].z/min)*ratio);
-         glRotated(angle_y(points[k][i]),0,1,0);
-         glRotated(angle_x(points[k][i]),1,0,0); 
-         glRotated(angle_z(points[k][i]),0,0,1);
-         glutSolidSphere((r/max)*ratio/*,(mod/max)*ratio*/,SLICES,STACKS);
-        glPopMatrix();
-      }
+  for(i = 0; i < v0_count; i++){
+    for(j = 0; j < n_points_rk2[i]; j++){
+      mod = module(points_rk2[i][j]);
+      glPushMatrix();
+        glTranslated((points_rk2[i][j].x/min_rk2)*ratio_rk2,-(points_rk2[i][j].y/min_rk2)*ratio_rk2,(points_rk2[i][j].z/min_rk2)*ratio_rk2);
+        glRotated(angle_y(points_rk2[i][j]),0,1,0);
+        glRotated(angle_x(points_rk2[i][j]),1,0,0); 
+        glRotated(angle_z(points_rk2[i][j]),0,0,1);
+        glutSolidSphere((r/max_rk2)*ratio_rk2/*,(mod/max)*ratio*/,SLICES,STACKS);
+      glPopMatrix();
     }
+  }
+
+  /* RK-4 */
+  glColor3d(1,0,0);
+  for(i = 0; i < v0_count; i++){
+    for(j = 0; j < n_points_rk4[i]; j++){
+      mod = module(points_rk4[i][j]);
+      glPushMatrix();
+        glTranslated((points_rk4[i][j].x/min_rk4)*ratio_rk4,-(points_rk4[i][j].y/min_rk4)*ratio_rk4,(points_rk4[i][j].z/min_rk4)*ratio_rk4);
+        glRotated(angle_y(points_rk4[i][j]),0,1,0);
+        glRotated(angle_x(points_rk4[i][j]),1,0,0); 
+        glRotated(angle_z(points_rk4[i][j]),0,0,1);
+        glutSolidSphere((r/max_rk4)*ratio_rk4/*,(mod/max)*ratio*/,SLICES,STACKS);
+      glPopMatrix();
+    }
+  }
  glutSwapBuffers();
 }
 
@@ -75,10 +90,10 @@ void mouse_click(int button, int state, int x, int y){
 
 void mouse_move(int x, int y){
   if(left_button == 1){
-    eye_x += (mouse_start_x - x)*ratio;
-    eye_y += (mouse_start_y - y)*ratio;
+    eye_x += (mouse_start_x - x)/*ratio*/;
+    eye_y += (mouse_start_y - y)/**ratio*/;
   }else if(right_button == 1){
-    eye_z += (mouse_start_y - y)*ratio;
+    eye_z += (mouse_start_y - y)/*ratio*/;
   }
   
   mouse_start_x = x;
@@ -86,7 +101,7 @@ void mouse_move(int x, int y){
   
   glMatrixMode(GL_MODELVIEW);
   gluLookAt(0.0, 0.0, 0.0, eye_x, eye_y, eye_z, 0.0, 1.0, 0.0);
-  glutPostRedisplay();;
+  glutPostRedisplay();
 }
 
 void plot_main(int argc, char *argv[]){
@@ -126,7 +141,7 @@ void plot_main(int argc, char *argv[]){
   glutMainLoop();
 }
 
-void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int *n_pts, vector **pts){
+void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int *n_pts_rk2, vector **pts_rk2, int *n_pts_rk4, vector **pts_rk4){
   int i, j;
   double mod;
 
@@ -134,27 +149,47 @@ void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
   n_y = nY;
   n_z = nZ;
   v0_count = v0Count;
-  min = nX*nY*nZ;
-  max = -min;
+  min_rk2 = min_rk4 =  nX*nY*nZ;
+  max_rk2 = max_rk4 = -min_rk2;
  
-  n_points = (int*) malloc(sizeof(int)*v0_count);
-  for(i = 0; i < v0_count; i++)
-    n_points[i] = n_pts[i];
-
-  points  = (vector**) malloc(sizeof(vector)*v0_count);
+  n_points_rk2 = (int*) malloc(sizeof(int)*v0_count);
+  n_points_rk4 = (int*) malloc(sizeof(int)*v0_count);
   for(i = 0; i < v0_count; i++){
-    points[i] = (vector*) malloc(sizeof(vector)*n_points[i]);
-    for(j = 0; j < n_points[i]; j++){
-      points[i][j].x = pts[i][j].x;
-      points[i][j].y = pts[i][j].y;
-      points[i][j].z = pts[i][j].z;
-      mod = module(points[i][j]);
-      if( mod > max)
-        max = mod;
-      else if( mod < min)
-        min = mod;
-    }
+    n_points_rk2[i] = n_pts_rk2[i];
+    n_points_rk4[i] = n_pts_rk4[i];
   }
-  ratio = min/max;
+
+  points_rk2  = (vector**) malloc(sizeof(vector)*v0_count);
+  points_rk4  = (vector**) malloc(sizeof(vector)*v0_count);
+  for(i = 0; i < v0_count; i++){
+    points_rk2[i] = (vector*) malloc(sizeof(vector)*n_points_rk2[i]);
+    points_rk4[i] = (vector*) malloc(sizeof(vector)*n_points_rk4[i]);
+
+    for(j = 0; j < n_points_rk2[i]; j++){
+      points_rk2[i][j].x = pts_rk2[i][j].x;
+      points_rk2[i][j].y = pts_rk2[i][j].y;
+      points_rk2[i][j].z = pts_rk2[i][j].z;
+      mod = module(points_rk2[i][j]);
+      if( mod > max_rk2)
+        max_rk2 = mod;
+      else if( mod < min_rk2)
+        min_rk2 = mod;
+    }
+
+    for(j = 0; j < n_points_rk4[i]; j++){
+      points_rk4[i][j].x = pts_rk4[i][j].x;
+      points_rk4[i][j].y = pts_rk4[i][j].y;
+      points_rk4[i][j].z = pts_rk4[i][j].z;
+      mod = module(points_rk4[i][j]);
+      if( mod > max_rk2)
+        max_rk4 = mod;
+      else if( mod < min_rk2)
+        min_rk4 = mod;
+    }
+
+
+  }
+  ratio_rk2 = min_rk2/max_rk2;
+  ratio_rk4 = min_rk4/max_rk4;
   plot_main(argc,argv);
 }

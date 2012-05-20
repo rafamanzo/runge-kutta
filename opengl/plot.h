@@ -11,4 +11,4 @@ const GLfloat mat_diffuse[]    = { 0.8f, 0.8f, 0.8f, 1.0f };
 const GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat high_shininess[] = { 100.0f };
 
-void plot_init(int argc, char *argv[], int n_x, int n_y, int n_z, int v0_count, int *n_points, vector **points);
+void plot_init(int argc, char *argv[], int n_x, int n_y, int n_z, int v0_count, int *n_points_rk2, vector **points_rk2, int *n_points_rk4, vector **points_rk4);
