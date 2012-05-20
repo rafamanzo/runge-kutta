@@ -6,7 +6,7 @@
 #include "math_operations.h"
 #include "../c/vector_operations.h"
 
-int n_x, n_y, n_z, v0_count;
+int n_x, n_y, n_z, v0_count, cylinder;
 int *n_points_rk2, *n_points_rk4;
 vector **points_rk2, **points_rk4;
 int left_button = 0;
@@ -27,8 +27,6 @@ static void resize(int width, int height){
 static void plot_vectors(){
   int i, j;
   double mod;
-  /* variavel pendentes */
-  double r = 5;
 
   glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -45,10 +43,14 @@ static void plot_vectors(){
       mod = module(points_rk2[i][j]);
       glPushMatrix();
         glTranslated((points_rk2[i][j].x/min_rk2)*ratio_rk2,-(points_rk2[i][j].y/min_rk2)*ratio_rk2,(points_rk2[i][j].z/min_rk2)*ratio_rk2);
-        glRotated(angle_y(points_rk2[i][j]),0,1,0);
-        glRotated(angle_x(points_rk2[i][j]),1,0,0); 
-        glRotated(angle_z(points_rk2[i][j]),0,0,1);
-        glutSolidSphere((r/max_rk2)*ratio_rk2/*,(mod/max)*ratio*/,SLICES,STACKS);
+        if( cylinder == 0)
+          glutSolidSphere((RADIUS/max_rk2)*ratio_rk2,SLICES,STACKS);
+        else{
+          glRotated(angle_y(points_rk2[i][j]),0,1,0);
+          glRotated(angle_x(points_rk2[i][j]),1,0,0); 
+          glRotated(angle_z(points_rk2[i][j]),0,0,1);
+          gluCylinder(gluNewQuadric(), (RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2 ,(mod/max_rk2)*ratio_rk2,SLICES,STACKS);
+        }
       glPopMatrix();
     }
   }
@@ -60,14 +62,19 @@ static void plot_vectors(){
       mod = module(points_rk4[i][j]);
       glPushMatrix();
         glTranslated((points_rk4[i][j].x/min_rk4)*ratio_rk4,-(points_rk4[i][j].y/min_rk4)*ratio_rk4,(points_rk4[i][j].z/min_rk4)*ratio_rk4);
-        glRotated(angle_y(points_rk4[i][j]),0,1,0);
-        glRotated(angle_x(points_rk4[i][j]),1,0,0); 
-        glRotated(angle_z(points_rk4[i][j]),0,0,1);
-        glutSolidSphere((r/max_rk4)*ratio_rk4/*,(mod/max)*ratio*/,SLICES,STACKS);
+        if( cylinder == 0)
+          glutSolidSphere((RADIUS/max_rk4)*ratio_rk4,SLICES,STACKS);
+        else{
+          glRotated(angle_y(points_rk4[i][j]),0,1,0);
+          glRotated(angle_x(points_rk4[i][j]),1,0,0); 
+          glRotated(angle_z(points_rk4[i][j]),0,0,1);
+          gluCylinder(gluNewQuadric(),(RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2 ,(mod/max_rk2)*ratio_rk2,SLICES,STACKS);
+        }
       glPopMatrix();
     }
   }
- glutSwapBuffers();
+  glutSwapBuffers();
+  printf("\nBLUE - Runge-Kutta 2\nRED - Runge-Kutta 4\n");
 }
 
 void mouse_click(int button, int state, int x, int y){
@@ -145,6 +152,10 @@ void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
   int i, j;
   double mod;
 
+  cylinder = 0;
+  if( (argc == 3) && (argv[2][0] == '1') )
+    cylinder = 1;
+
   n_x = nX;
   n_y = nY;
   n_z = nZ;
@@ -186,7 +197,6 @@ void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
       else if( mod < min_rk2)
         min_rk4 = mod;
     }
-
 
   }
   ratio_rk2 = min_rk2/max_rk2;

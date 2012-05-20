@@ -1,4 +1,12 @@
+#ifdef MACOSX
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
+#endif
+
+#define RADIUS 5
 #define SLICES 16
 #define STACKS 16
 

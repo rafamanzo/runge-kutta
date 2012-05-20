@@ -1,9 +1,22 @@
 .PHONY: clean clean_compiling_results clean_others clean_plot clean_examples clean_library examples cuda c
 COMPUTE_CAPABILITY=-arch sm_20
 
+#
+UNAME := $(shell uname)
+
+ifeq ($(UNAME), Linux)
+  OPENCL_LIB := -lOpenCL
+  OPENGL_LIB := -lglut -lGLU
+endif
+ifeq ($(UNAME), Darwin)
+  OPENCL_LIB := -framework OpenCL
+  OPENGL_LIB := -framework OpenGL -framework GLUT
+endif
+
+
 #default C++ version
 c: main.o rk_c.o input.o vector_operations_c.o vector_field.o output.o plot.o math_operations.o
-	g++ main.o input.o rk_c.o vector_operations_c.o vector_field.o output.o plot.o math_operations.o -lglut -lGLU -o rk
+	g++ main.o input.o rk_c.o vector_operations_c.o vector_field.o output.o plot.o math_operations.o ${OPENGL_LIB} -o rk
 
 #general objects
 	
@@ -20,7 +33,7 @@ vector_field.o: vector_field.cpp vector_field.h
 	g++ -c -Wall -ansi -pedantic vector_field.cpp -o vector_field.o
 
 plot.o: opengl/plot.cpp opengl/plot.h vector_field.h c/vector_operations.h opengl/math_operations.h 
-	g++ -c opengl/plot.cpp -lglut -lGLU -o plot.o
+	g++ -c opengl/plot.cpp ${OPENGL_LIB} -o plot.o
 
 math_operations.o: opengl/math_operations.cpp opengl/math_operations.h vector_field.h
 	g++ -c opengl/math_operations.cpp -lm -o math_operations.o
@@ -34,7 +47,7 @@ vector_operations_c.o: c/vector_operations.cpp c/vector_operations.h vector_fiel
 
 #CUDA
 cuda: main.o input.o vector_field.o output.o rk_cuda.o rk_cuda_kernel.o plot.o math_operations.o
-	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o vector_field.o output.o plot.o math_operations.o -lglut -lGLU -o rk ${COMPUTE_CAPABILITY}
+	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o vector_field.o output.o plot.o math_operations.o ${OPENGL_LIB} -o rk ${COMPUTE_CAPABILITY}
 	
 rk_cuda_kernel.o: cuda/rk.cu cuda/rk_kernel.h vector_field.h
 	nvcc -c cuda/rk.cu -o rk_cuda_kernel.o ${COMPUTE_CAPABILITY}
@@ -44,7 +57,7 @@ rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h vector_field.h
 
 #OpenCL
 opencl: main.o input.o vector_field.o output.o rk_opencl.o librk.a plot.o math_operations.o
-	g++ main.o input.o rk_opencl.o vector_field.o output.o librk.a plot.o math_operations.o -lglut -lGLU -lm -I${OPENCL_INCLUDE} -framework OpenCL -o rk
+	g++ main.o input.o rk_opencl.o vector_field.o output.o librk.a plot.o math_operations.o ${OPENGL_LIB} -lm -I${OPENCL_INCLUDE} ${OPENCL_LIB} -o rk
 	
 rk_opencl.o: opencl/rk.cpp opencl/ocl.h rk.h vector_field.h
 	g++ -c opencl/rk.cpp  -o rk_opencl.o -I${OPENCL_INCLUDE}

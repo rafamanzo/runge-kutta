@@ -23,7 +23,7 @@ int main(int argc, char *argv[]){
   rk4(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk4, &n_points_rk4);
   rk2(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk2, &n_points_rk2);
 
-  printf("\nPress \"1\" to generate gnuplot input;\nPress \"2\" to plot the solution;\nPress \"Any other caracter\" to exit\n");
+  printf("\nPress \"1\" to generate gnuplot input;\nPress \"2\" to plot the solution;\nPress \"Any other caracter\" to exit.\n");
   c = getchar();
   if( c == '1' ){
     generate_gnuplot_input(n_x, n_y, n_z, v0_count, n_points_rk2, points_rk2, n_points_rk4, points_rk4);
