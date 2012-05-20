@@ -1,4 +1,4 @@
-#ifdef GNU
+#ifdef __linux
 #include <GL/glut.h>
 #else
 #include <OpenGL/gl.h>
