@@ -13,14 +13,17 @@ int* n_points;
 vector** points;
 int left_button = 0;
 int right_button = 0;
+double min, max, ratio;
 double eye_x = 6.0;
 double eye_y = -6.0;
 double eye_z = -100.0;
 int mouse_start_x, mouse_start_y;
 
 static void resize(int width, int height){
-    glViewport(0, 0, width, height);
-    gluLookAt(0.0, 0.0, 0.0, eye_x, eye_y, eye_z, 0.0, 1.0, 0.0);
+  glMatrixMode(GL_MODELVIEW); 
+  glViewport(0, 0, width, height);
+  gluLookAt(0.0, 0.0, 0.0, eye_x, eye_y, eye_z, 0.0, 1.0, 0.0);
+  glutPostRedisplay();
 }
 
 static void plot_vectors(){
@@ -29,13 +32,15 @@ static void plot_vectors(){
   
   /* variaveis pendentes */
   int d_x, d_y, d_z ;
-  double max = 1;
-  double ratio = 0.001;
-  double r = 1;
+  double r = 5;
   d_x = d_y = d_z = 1;
 
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+    glLoadIdentity();
+    glTranslated(-1,-1.0,0.0);
+    glRotated(180,0,1,0); 
+    glRotated(180,0,0,1);  
+  glPushMatrix();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glColor3d(0,0,1);
 
@@ -45,17 +50,16 @@ static void plot_vectors(){
         mod = module(points[k][i]);
         /*if( mod > max_legth )
           mod = max_legth;*/
-
         glPushMatrix();
-         glTranslated((-n_x/2+i*d_x)*ratio,(-n_y/2+j*d_y)*ratio,(-n_z/2+k*d_z)*ratio);
+         glTranslated((points[k][i].x/min)*ratio,-(points[k][i].y/min)*ratio,(points[k][i].z/min)*ratio);
          glRotated(angle_y(points[k][i]),0,1,0);
-         glRotated(-angle_x(points[k][i]),1,0,0); 
+         glRotated(angle_x(points[k][i]),1,0,0); 
          glRotated(angle_z(points[k][i]),0,0,1);
-         glutSolidCone(pow(r/max,2)*ratio,(mod/max)*ratio,SLICES,STACKS);
+         glutSolidSphere((r/max)*ratio/*,(mod/max)*ratio*/,SLICES,STACKS);
         glPopMatrix();
-       }
+      }
     }
- glutSwapBuffers();	glFlush();
+ glutSwapBuffers();
 }
 
 void mouse_click(int button, int state, int x, int y){
@@ -78,10 +82,10 @@ void mouse_click(int button, int state, int x, int y){
 
 void mouse_move(int x, int y){
   if(left_button == 1){
-    eye_x += (mouse_start_x - x);//*ratio;
-    eye_y += (mouse_start_y - y);//*ratio;
+    eye_x += (mouse_start_x - x)*ratio;
+    eye_y += (mouse_start_y - y)*ratio;
   }else if(right_button == 1){
-    eye_z += (mouse_start_y - y);//*ratio;
+    eye_z += (mouse_start_y - y)*ratio;
   }
   
   mouse_start_x = x;
@@ -89,16 +93,19 @@ void mouse_move(int x, int y){
   
   glMatrixMode(GL_MODELVIEW);
   gluLookAt(0.0, 0.0, 0.0, eye_x, eye_y, eye_z, 0.0, 1.0, 0.0);
-  plot_vectors();
+  glutPostRedisplay();;
 }
 
 void plot_main(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int *n_pts, vector **pts){
   int i, j;
+  double mod;
 
   n_x = nX;
   n_y = nY;
   n_z = nZ;
   v0_count = v0Count;
+  min = nX*nY*nZ;
+  max = -min;
  
   n_points = (int*) malloc(sizeof(int)*v0_count);
   for(i = 0; i < v0_count; i++)
@@ -111,12 +118,17 @@ void plot_main(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
       points[i][j].x = pts[i][j].x;
       points[i][j].y = pts[i][j].y;
       points[i][j].z = pts[i][j].z;
+      mod = module(points[i][j]);
+      if( mod > max)
+        max = mod;
+      else if( mod < min)
+        min = mod;
     }
   }  
   
 
   //max_legth = sqrt(pow(field.d_x, 2) + pow(field.d_y, 2) + pow(field.d_z, 2));
-  //ratio = (field.min/field.max)/max_legth;
+  ratio = min/max;///max_legth;
   glutInit(&argc, argv);
   glutInitWindowSize(1024,768);
   glutInitWindowPosition(0,0);
