@@ -5,9 +5,10 @@
 #include "plot.h"
 #include "math_operations.h"
 
-int n_x, n_y, n_z, v0_count, cylinder;
+int n_x, n_y, n_z, v0_count;
 int *n_points_rk2, *n_points_rk4;
 vector **points_rk2, **points_rk4;
+char option;
 int left_button = 0;
 int right_button = 0;
 double min_rk2, min_rk4, max_rk2, max_rk4, ratio_rk2, ratio_rk4;
@@ -23,15 +24,13 @@ static void resize(int width, int height){
   glutPostRedisplay();
 }
 
-static void plot_vectors(){
+static void plot_cylinders(){
   int i, j;
   double mod;
 
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
     glTranslated(-1,-1.0,0.0);
-    glRotated(180,0,1,0); 
-    glRotated(180,0,0,1);  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   /* RK-2 */
@@ -40,15 +39,11 @@ static void plot_vectors(){
     for(j = 0; j < n_points_rk2[i]; j++){
       mod = module2(points_rk2[i][j]);
       glPushMatrix();
-        glTranslated((points_rk2[i][j].x/min_rk2)*ratio_rk2,-(points_rk2[i][j].y/min_rk2)*ratio_rk2,(points_rk2[i][j].z/min_rk2)*ratio_rk2);
-        if( cylinder == 0)
-          glutSolidSphere((RADIUS/max_rk2)*ratio_rk2,SLICES,STACKS);
-        else{
-          glRotated(angle_y(points_rk2[i][j]),0,1,0);
-          glRotated(angle_x(points_rk2[i][j]),1,0,0); 
-          glRotated(angle_z(points_rk2[i][j]),0,0,1);
-          gluCylinder(gluNewQuadric(), (RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2 ,(mod/max_rk2)*ratio_rk2,SLICES,STACKS);
-        }
+        glTranslated((points_rk2[i][j].x/min_rk2)*ratio_rk2,(points_rk2[i][j].y/min_rk2)*ratio_rk2,(points_rk2[i][j].z/min_rk2)*ratio_rk2);
+        glRotated(angle_y(points_rk2[i][j]),0,1,0);
+        glRotated(angle_x(points_rk2[i][j]),1,0,0); 
+        glRotated(angle_z(points_rk2[i][j]),0,0,1);
+        gluCylinder(gluNewQuadric(), (RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2 ,(mod/max_rk2)*ratio_rk2,SLICES,STACKS);
       glPopMatrix();
     }
   }
@@ -59,20 +54,80 @@ static void plot_vectors(){
     for(j = 0; j < n_points_rk4[i]; j++){
       mod = module2(points_rk4[i][j]);
       glPushMatrix();
-        glTranslated((points_rk4[i][j].x/min_rk4)*ratio_rk4,-(points_rk4[i][j].y/min_rk4)*ratio_rk4,(points_rk4[i][j].z/min_rk4)*ratio_rk4);
-        if( cylinder == 0)
-          glutSolidSphere((RADIUS/max_rk4)*ratio_rk4,SLICES,STACKS);
-        else{
-          glRotated(angle_y(points_rk4[i][j]),0,1,0);
-          glRotated(angle_x(points_rk4[i][j]),1,0,0); 
-          glRotated(angle_z(points_rk4[i][j]),0,0,1);
-          gluCylinder(gluNewQuadric(),(RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2 ,(mod/max_rk2)*ratio_rk2,SLICES,STACKS);
-        }
+        glTranslated((points_rk4[i][j].x/min_rk4)*ratio_rk4,(points_rk4[i][j].y/min_rk4)*ratio_rk4,(points_rk4[i][j].z/min_rk4)*ratio_rk4);
+        glRotated(angle_y(points_rk4[i][j]),0,1,0);
+        glRotated(angle_x(points_rk4[i][j]),1,0,0); 
+        glRotated(angle_z(points_rk4[i][j]),0,0,1);
+        gluCylinder(gluNewQuadric(),(RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2 ,(mod/max_rk2)*ratio_rk2,SLICES,STACKS);
       glPopMatrix();
     }
   }
   glutSwapBuffers();
 }
+
+static void plot_spheres(){
+  int i, j;
+
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+    glTranslated(-1,-1.0,0.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  /* RK-2 */
+  glColor3d(0,0,1);
+  for(i = 0; i < v0_count; i++){
+    for(j = 0; j < n_points_rk2[i]; j++){
+      glPushMatrix();
+        glTranslated((points_rk2[i][j].x/min_rk2)*ratio_rk2,(points_rk2[i][j].y/min_rk2)*ratio_rk2,(points_rk2[i][j].z/min_rk2)*ratio_rk2);
+        glutSolidSphere((RADIUS/max_rk2)*ratio_rk2,SLICES,STACKS);
+      glPopMatrix();
+    }
+  }
+
+  /* RK-4 */
+  glColor3d(1,0,0);
+  for(i = 0; i < v0_count; i++){
+    for(j = 0; j < n_points_rk4[i]; j++){
+      glPushMatrix();
+        glTranslated((points_rk4[i][j].x/min_rk4)*ratio_rk4,(points_rk4[i][j].y/min_rk4)*ratio_rk4,(points_rk4[i][j].z/min_rk4)*ratio_rk4);
+        glutSolidSphere((RADIUS/max_rk4)*ratio_rk4,SLICES,STACKS);
+      glPopMatrix();
+    }
+  }
+  glutSwapBuffers();
+}
+
+
+
+static void plot_lines(){
+  int i, j;
+  double mod;
+
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+    glTranslated(-1.0,-1.0,0.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  /* RK-2 */
+  glColor3d(0,0,1);
+  for(i = 0; i < v0_count; i++){
+    glBegin(GL_LINE_STRIP);
+    for(j = 0; j < n_points_rk2[i]; j++)
+      glVertex3d((points_rk2[i][j].x/min_rk2)*ratio_rk2,(points_rk2[i][j].y/min_rk2)*ratio_rk2,(points_rk2[i][j].z/min_rk2)*ratio_rk2);
+    glEnd();
+  }
+
+  /* RK-4 */
+  glColor3d(1,0,0);
+  for(i = 0; i < v0_count; i++){
+    glBegin(GL_LINES);
+    for(j = 0; j < n_points_rk4[i]; j++)
+      glVertex3d((points_rk4[i][j].x/min_rk4)*ratio_rk4,(points_rk4[i][j].y/min_rk4)*ratio_rk4,(points_rk4[i][j].z/min_rk4)*ratio_rk4);
+    glEnd();
+  }
+  glutSwapBuffers();
+}
+
 
 void mouse_click(int button, int state, int x, int y){
   if(state == GLUT_DOWN){
@@ -137,10 +192,16 @@ void plot_main(int argc, char *argv[]){
   glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
   glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
   glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
+
   glLoadIdentity();
+  if( option == 'l')
+      glutDisplayFunc(plot_lines);
+  else if( option == 'c')
+    glutDisplayFunc(plot_cylinders);
+  else if( option == 's')
+    glutDisplayFunc(plot_spheres);
 
   glutReshapeFunc(resize);
-  glutDisplayFunc(plot_vectors);
   glutMotionFunc(mouse_move);
   glutMouseFunc(mouse_click);
   glutMainLoop();
@@ -150,10 +211,14 @@ void plot_init(int argc, char *argv[], int nX, int nY, int nZ, int v0Count, int 
   int i, j;
   double mod;
 
-  cylinder = 0;
-  if( (argc == 3) && (argv[2][0] == '1') )
-    cylinder = 1;
-
+  option = 'l';
+  if( argc == 3 ){
+    if(argv[2][0] == 's')
+      option = 's';
+    else if(argv[2][0] == 'c')
+      option = 'c';
+  }
+  printf("OPTION %c\n",option);
   n_x = nX;
   n_y = nY;
   n_z = nZ;
