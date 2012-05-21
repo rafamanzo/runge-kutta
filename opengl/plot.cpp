@@ -30,7 +30,6 @@ static void plot_cylinders(){
 
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
-    glTranslated(-1,-1.0,0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   /* RK-2 */
@@ -43,7 +42,7 @@ static void plot_cylinders(){
         glRotated(angle_y(points_rk2[i][j]),0,1,0);
         glRotated(angle_x(points_rk2[i][j]),1,0,0); 
         glRotated(angle_z(points_rk2[i][j]),0,0,1);
-        gluCylinder(gluNewQuadric(), (RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2 ,(mod/max_rk2)*ratio_rk2,SLICES,STACKS);
+        gluCylinder(gluNewQuadric(),(RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2,SIZE*ratio_rk2,SLICES,STACKS);
       glPopMatrix();
     }
   }
@@ -58,7 +57,7 @@ static void plot_cylinders(){
         glRotated(angle_y(points_rk4[i][j]),0,1,0);
         glRotated(angle_x(points_rk4[i][j]),1,0,0); 
         glRotated(angle_z(points_rk4[i][j]),0,0,1);
-        gluCylinder(gluNewQuadric(),(RADIUS/max_rk2)*ratio_rk2,(RADIUS/max_rk2)*ratio_rk2 ,(mod/max_rk2)*ratio_rk2,SLICES,STACKS);
+        gluCylinder(gluNewQuadric(),(RADIUS/max_rk4)*ratio_rk4,(RADIUS/max_rk4)*ratio_rk4,SIZE*ratio_rk4,SLICES,STACKS);
       glPopMatrix();
     }
   }
@@ -70,7 +69,6 @@ static void plot_spheres(){
 
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
-    glTranslated(-1,-1.0,0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   /* RK-2 */
@@ -105,7 +103,6 @@ static void plot_lines(){
 
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
-    glTranslated(-1.0,-1.0,0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   /* RK-2 */

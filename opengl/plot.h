@@ -9,6 +9,7 @@
 #define RADIUS 5
 #define SLICES 16
 #define STACKS 16
+#define SIZE 0.5
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
 const GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
