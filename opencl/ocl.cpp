@@ -12,6 +12,7 @@ cl_kernel kernel;
 cl_program program;
 cl_event event;
 cl_mem v_initial, fld, pts, n_pts;
+cl_float3 *cl_field, *cl_v0;
 /* Informacoes sobre os devices */
 unsigned int devices_found;
 unsigned int device_used = 0;
@@ -116,42 +117,38 @@ void opencl_create_kernel(char* kernel_name){
   }
 }
 
-
 void prepare_kernel( char *kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points) {
-  cl_int err;
+  int i;
+
+  cl_v0 = (cl_float3*) malloc(sizeof(cl_float3)*count_v0);
+  for( i = 0; i < count_v0; i++){
+    cl_v0[i].x = (float) v0[i].x;
+    cl_v0[i].y = (float) v0[i].y;
+    cl_v0[i].z = (float) v0[i].z;
+  }
+
+  cl_field = (cl_float3*) malloc(sizeof(cl_float3)*n_x*n_y*n_z);
+  for( i = 0; i < n_x*n_y*n_z; i++){
+    cl_field[i].x = (float) field[i].x;
+    cl_field[i].y = (float) field[i].y;
+    cl_field[i].z = (float) field[i].z;
+  }
 
   opencl_create_kernel(kernel_name);
-  v_initial = clCreateBuffer(context, CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR, sizeof(vector)*count_v0,(void*)&v0, NULL); 
-  fld = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*n_x*n_y*n_z,(void*)&field, &err);
+  v_initial = clCreateBuffer(context, CL_MEM_READ_ONLY| CL_MEM_COPY_HOST_PTR, sizeof(cl_float3)*count_v0,cl_v0, NULL); 
+  fld = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float3)*n_x*n_y*n_z,cl_field, NULL);
   pts = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float3)*n_x*n_y*n_z, NULL, NULL);
   n_pts = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float3)*count_v0, NULL, NULL);
-
-printf("Antes!\n");
 
   if(v_initial == NULL)
     printf("v_initial is NULL\n");
   if(fld == NULL)
-    printf("fld is NULL err = %d\n",err);
-  if( err == CL_OUT_OF_HOST_MEMORY)
-    printf("CL_OUT_OF_HOST_MEMORY\n");
+    printf("fld is NULL\n");
   if(pts == NULL)
     printf("pts is NULL\n");
   if(n_pts == NULL)
     printf("n_pts is NULL\n");
 
-  /*n_pts = (cl_float3*) malloc(sizeof(cl_float3)*count_v0);
-  for( i = 0; i < count_v0; i++){
-    n_pts[i].x = (float)v0[i].x;
-    n_pts[i].y = (float)v0[i].y;
-    n_pts[i].z = (float)v0[i].z;
-  }
-    
-  entrada = (cl_float3*) malloc(sizeof(cl_float3)*n_x*n_y*n_z);
-  for( i = 0; i < count_v0; i++){
-    entrada[i].x = (float)field[i].x;
-    entrada[i].y = (float)field[i].y;
-    entrada[i].z = (float)field[i].z;
-  }*/
   if( clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&v_initial) != CL_SUCCESS)
     printf("ERROR: Failed to set kernel argument 0.\n");
   if( clSetKernelArg(kernel, 1, sizeof(int), (void*)&count_v0) != CL_SUCCESS)
@@ -170,34 +167,39 @@ printf("Antes!\n");
     printf("ERROR: Failed to set kernel argument 7.\n");
   if( clSetKernelArg(kernel, 8, sizeof(cl_mem), (void*)&n_pts) != CL_SUCCESS)
     printf("ERROR: Failed to set kernel argument 8.\n");
-printf("Depois!\n");
+
   clFinish(queue);//colocar na fila?!
 }
 
 void opencl_run_kernel(int n_x, int n_y, int n_z, int count_v0){
   size_t work_dim[1];
-  int i; cl_int err;
+  int i;
+  cl_float3 *cl_npts, *cl_pts;
+  char buffer[10240];
+
+  cl_npts = (cl_float3*) malloc(sizeof(cl_float3)*count_v0);
+  cl_pts = (cl_float3*) malloc(sizeof(cl_float3)*n_x*n_y*n_z);
 
   work_dim[0] = n_x*n_y*n_z;
 
   clEnqueueNDRangeKernel(queue, kernel, 1, NULL, work_dim, NULL, 0, NULL, &event);
   clReleaseEvent(event);
   clFinish(queue);
-printf("INSIDE\n");
-  //validar funcao abaixo
-  if( (err = clEnqueueReadBuffer(queue, pts, CL_TRUE, 0, sizeof(vector)*n_x*n_y*n_z, &pts, 0, NULL, &event)) == CL_INVALID_VALUE ){ 
-	  printf("\nERROR: Failed to read buffer pts %d.\n",err);
-    exit(-1);
-  }
-  if( (err = clEnqueueReadBuffer(queue, n_pts, CL_TRUE, 0, sizeof(vector)*count_v0, &n_pts, 0, NULL, &event)) == CL_INVALID_VALUE ){ 
-	  printf("\nERROR: Failed to read buffer n_points %d.\n",err);
-    exit(-1);
-  }
 
+  if( clEnqueueReadBuffer(queue, pts, CL_TRUE, 0, sizeof(cl_float3)*n_x*n_y*n_z, &cl_pts, 0, NULL, &event) != CL_SUCCESS ){ 
+	  printf("\nERROR: Failed to read buffer pts.\n");
+    exit(-1);
+  }
+printf("\n> ANTES n_x*n_y*n_z = %d n_x %d n_y %d n_z %d\n",n_x*n_y*n_z,n_x,n_y,n_z);
+ /* if( clEnqueueReadBuffer(queue, n_pts, CL_TRUE, 0, sizeof(cl_float3)*count_v0, &cl_npts, 0, NULL, &event) != CL_SUCCESS ){ 
+	  printf("\nERROR: Failed to read buffer n_points.\n");
+    exit(-1);
+  }*/
   clReleaseEvent(event);
+printf("> DEPOIS n_x*n_y*n_z = %d n_x %d n_y %d n_z %d\n",n_x*n_y*n_z,n_x,n_y,n_z);
 
  //for( i = 0; i < n_x*n_y*n_z; i++ )
-   //printf("%f %f %f\n", out[i].x,out[i].y,out[i].z);
+   //printf("%f %f %f\n", cl_pts[i].x,cl_pts[i].y,cl_pts[i].z);
 }
 
 void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
@@ -226,10 +228,10 @@ void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x,
   opencl_build_program();
   printf(" OK.\n");
   
-  printf("Preparing the kernel...");
+  printf("Preparing the kernel...");  
   prepare_kernel((char*)"rk4_kernel",v0,count_v0,h,n_x,n_y,n_z,field,points,n_points);
   printf(" OK.\n");
-
+printf("COMECO n_x*n_y*n_z = %d n_x %d n_y %d n_z %d\n",n_x*n_y*n_z,n_x,n_y,n_z);
   printf("Running the kernel...");
   opencl_run_kernel(n_x,n_y,n_z, count_v0);
   printf(" OK.\n");
