@@ -7,15 +7,15 @@
 #endif
 
 double angle_x(vector v){
-  return atan2(v.y,v.z)*180/PI;
+  return atan2(v.x,module2(v))*180/PI;
 }
 
 double angle_y(vector v){
-  return atan2(v.x,v.z)*180/PI;
+  return atan2(v.y/module2(v))*180/PI;
 }
 
 double angle_z(vector v){
-  return atan2(v.x,v.y)*180/PI;
+  return atan2(v.z/module2(v))*180/PI;
 }
 
 double module2(vector v){
