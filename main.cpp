@@ -6,8 +6,9 @@
 #include "input.h"
 #include "output.h"
 
+using namespace runge_kutta;
+
 int main(int argc, char *argv[]){
-  char input[50];
   vector_field field;
   int n_x, n_y, n_z, v0_count, i;
   vector *v0;
@@ -15,8 +16,8 @@ int main(int argc, char *argv[]){
   vector **points_rk4, **points_rk2;
   int *n_points_rk4, *n_points_rk2;
   
-  strcpy(input, argv[1]);
-  parseFile(input, &n_x, &n_y, &n_z, &h, &v0, &v0_count, &field);
+  Input file = Input(argv[1]);
+  file.parse(&n_x, &n_y, &n_z, &h, &v0, &v0_count, &field);
   
   rk4(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk4, &n_points_rk4);
   rk2(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk2, &n_points_rk2);

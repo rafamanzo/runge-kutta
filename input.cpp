@@ -1,13 +1,17 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
+#include<cstdlib>
+#include<cstdio>
+#include<cstring>
 #include "vector_field.h"
 #include "input.h"
 
-void parseFile(char *file, int *n_x, int *n_y, int *n_z, double *h, vector **v0, int *v0_count, vector_field *field){
-  FILE *fp;
+using namespace runge_kutta;
+
+Input::Input(char *file_name){
+  fp = fopen(file_name, "r");
+}
+
+void Input::parse(int *n_x, int *n_y, int *n_z, double *h, vector **v0, int *v0_count, vector_field *field){
   int i, j, k;
-  fp = fopen(file, "r");
   
   fscanf(fp, "%d", n_x);
   fscanf(fp, "%d", n_y);
