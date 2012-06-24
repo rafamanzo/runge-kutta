@@ -1,1 +1,12 @@
-void generate_gnuplot_input(runge_kutta::DataSet dataset, unsigned v0_count, runge_kutta::Fiber *rk2_fibers, runge_kutta::Fiber *rk4_fibers);
+namespace runge_kutta{
+  class Output{
+    private:
+      DataSet _dataSet;
+      unsigned _fibersCount;
+      Fiber *_rk2Fibers;
+      Fiber *_rk4Fibers;
+    public:
+      Output(DataSet dataSet, unsigned fibersCount, Fiber *rk2Fibers, Fiber *rk4Fibers);
+      void gnuplotInput();     
+  };
+}

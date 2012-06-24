@@ -22,7 +22,8 @@ int main(int argc, char *argv[]){
   Fiber *rk4_fibers = rk.order4();
   Fiber *rk2_fibers = rk.order2();
   
-  generate_gnuplot_input(dataset, v0_count, rk2_fibers, rk4_fibers);
+  Output output = Output(dataset, v0_count, rk2_fibers, rk4_fibers);
+  output.gnuplotInput();
 
   free(v0);
   
