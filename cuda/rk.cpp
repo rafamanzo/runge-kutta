@@ -1,12 +1,21 @@
-#include<stdlib.h>
-#include "../vector_field.h"
+#include<cstdlib>
+#include "../dataset.h"
 #include "../rk.h"
 #include "rk_kernel.h"
 
-void rk2(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
-  rk2_caller(v0, count_v0, h, n_x, n_y, n_z, field, points, n_points);
+using namespace runge_kutta;
+
+RungeKutta::RungeKutta(DataSet dataset, vector *v0, unsigned count_v0, double h){
+  _dataset = dataset;
+  _v0 = v0;
+  _count_v0 = count_v0;
+  _h = h;
 }
 
-void rk4(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
-  rk4_caller(v0, count_v0, h, n_x, n_y, n_z, field, points, n_points);
+void RungeKutta::order2(vector ***points, int **n_points){
+  rk2_caller(_v0, _count_v0, _h, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field(), points, n_points);
+}
+
+void RungeKutta::order4(vector ***points, int **n_points){
+  rk4_caller(_v0, _count_v0, _h, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field(), points, n_points);
 }

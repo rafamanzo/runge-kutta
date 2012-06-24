@@ -1,7 +1,7 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include "vector_field.h"
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+#include "dataset.h"
 #include "rk.h"
 #include "input.h"
 #include "output.h"
@@ -9,20 +9,21 @@
 using namespace runge_kutta;
 
 int main(int argc, char *argv[]){
-  vector_field field;
-  int n_x, n_y, n_z, v0_count, i;
+  int v0_count, i;
   vector *v0;
   double h;
   vector **points_rk4, **points_rk2;
   int *n_points_rk4, *n_points_rk2;
   
   Input file = Input(argv[1]);
-  file.parse(&n_x, &n_y, &n_z, &h, &v0, &v0_count, &field);
+  DataSet dataset = file.parse(&h, &v0, &v0_count);
   
-  rk4(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk4, &n_points_rk4);
-  rk2(v0, v0_count, h, n_x, n_y, n_z, field, &points_rk2, &n_points_rk2);
+  RungeKutta rk = RungeKutta(dataset, v0, v0_count, h);
   
-  generate_gnuplot_input(n_x, n_y, n_z, v0_count, n_points_rk2, points_rk2, n_points_rk4, points_rk4);
+  rk.order4(&points_rk4, &n_points_rk4);
+  rk.order2(&points_rk2, &n_points_rk2);
+  
+  generate_gnuplot_input((int) dataset.n_x(), (int) dataset.n_y(), (int) dataset.n_z(), v0_count, n_points_rk2, points_rk2, n_points_rk4, points_rk4);
 
   free(v0);
   free(n_points_rk4);

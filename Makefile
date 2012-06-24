@@ -2,8 +2,8 @@
 COMPUTE_CAPABILITY=-arch sm_20
 
 #default C++ version
-c: main.o rk_c.o input.o vector_operations_c.o vector_field.o output.o
-	g++ main.o input.o rk_c.o vector_operations_c.o vector_field.o output.o -o rk
+c: main.o rk_c.o input.o dataset.o output.o rk_kernel_c.o
+	g++ main.o input.o rk_c.o rk_kernel_c.o dataset.o output.o -o rk
 
 #general objects
 	
@@ -19,19 +19,22 @@ output.o: output.cpp output.h vector_field.h
 vector_field.o: vector_field.cpp vector_field.h
 	g++ -c -Wall -ansi -pedantic vector_field.cpp -o vector_field.o
 
+dataset.o: dataset.cpp dataset.h
+	g++ -c -Wall -pedantic dataset.cpp
+
 #C++
-rk_c.o: c/rk.cpp rk.h vector_field.h c/vector_operations.h
+rk_c.o: c/rk.cpp rk.h dataset.h
 	g++ -c -Wall -ansi -pedantic c/rk.cpp -o rk_c.o
 	
-vector_operations_c.o: c/vector_operations.cpp c/vector_operations.h vector_field.h
-	g++ -c -Wall -ansi -pedantic c/vector_operations.cpp -o vector_operations_c.o
-
-#CUDA
-cuda: main.o input.o vector_field.o output.o rk_cuda.o rk_cuda_kernel.o
-	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o vector_field.o output.o -o rk ${COMPUTE_CAPABILITY}
+rk_kernel_c.o:
+	g++ -c -Wall -pedantic c/rk_kernel.cpp -o rk_kernel_c.o
 	
-rk_cuda_kernel.o: cuda/rk.cu cuda/rk_kernel.h vector_field.h
-	nvcc -c cuda/rk.cu -o rk_cuda_kernel.o ${COMPUTE_CAPABILITY}
+#CUDA
+cuda: main.o input.o dataset.o output.o rk_cuda.o rk_cuda_kernel.o
+	nvcc -g main.o input.o rk_cuda_kernel.o rk_cuda.o dataset.o output.o -o rk ${COMPUTE_CAPABILITY}
+	
+rk_cuda_kernel.o: cuda/rk_kernel.cu cuda/rk_kernel.h vector_field.h
+	nvcc -c -g cuda/rk_kernel.cu -o rk_cuda_kernel.o ${COMPUTE_CAPABILITY}
 
 rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h vector_field.h
 	nvcc -c cuda/rk.cpp -o rk_cuda.o ${COMPUTE_CAPABILITY}
@@ -53,4 +56,4 @@ clean_others:
 clean_examples:
 	rm -f rotationField randomField
   
-clean: clean_compiling_results clean_others clean_plot clean_examples
+clean: clean_compiling_results clean_others clean_plot

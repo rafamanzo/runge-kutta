@@ -3,7 +3,7 @@
 #include<math.h>
 #include "cuda.h"
 #include "cuda_runtime.h"
-#include "../vector_field.h"
+#include "../dataset.h"
 #include "rk_kernel.h"
 
 /******************************/
@@ -229,7 +229,7 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   for(i = 0; i < count_v0; i++){
     (*points)[i] = (vector *) malloc(n_points_aux[i]*sizeof(vector));
     for(j = 0; j < n_points_aux[i]; j++)
-      (*points)[i][j] = points_aux[offset(count_v0, 0, i, j, 0)];
+      (*points)[i][j] = points_aux[runge_kutta::DataSet::offset(count_v0, 0, i, j, 0)];
   }
   
   *n_points = n_points_aux;
@@ -293,7 +293,7 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   for(i = 0; i < count_v0; i++){
     (*points)[i] = (vector *) malloc(n_points_aux[i]*sizeof(vector));
     for(j = 0; j < n_points_aux[i]; j++){
-      (*points)[i][j] = points_aux[offset(count_v0, 0, i, j, 0)];
+      (*points)[i][j] = points_aux[runge_kutta::DataSet::offset(count_v0, 0, i, j, 0)];
     }
   }
   
