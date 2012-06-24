@@ -10,7 +10,7 @@ Input::Input(char *file_name){
   fp = fopen(file_name, "r");
 }
 
-DataSet Input::parse(double *h, vector **v0, int *v0_count){
+DataSet Input::parse(double *h, vector **v0, unsigned *v0_count){
   unsigned i, j, k;
   unsigned *n_x, *n_y, *n_z;
   vector_field *field;
@@ -25,9 +25,9 @@ DataSet Input::parse(double *h, vector **v0, int *v0_count){
   fscanf(fp, "%u", n_y);
   fscanf(fp, "%u", n_z);
   
-  fscanf(fp, "%d", v0_count);
+  fscanf(fp, "%u", v0_count);
   *v0 = (vector *) malloc( (*v0_count)*sizeof(vector) );
-  for(i = 0; i < ((unsigned) *v0_count); i++){
+  for(i = 0; i < *v0_count; i++){
     fscanf(fp, "%lf", &(((*v0)[i]).x));
     fscanf(fp, "%lf", &(((*v0)[i]).y));
     fscanf(fp, "%lf", &(((*v0)[i]).z));

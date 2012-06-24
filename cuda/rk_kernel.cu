@@ -1,9 +1,10 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<math.h>
+#include<cstdlib>
+#include<cstdio>
+#include<cmath>
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "../dataset.h"
+#include "../fiber.h"
 #include "rk_kernel.h"
 
 /******************************/
@@ -177,7 +178,7 @@ __global__ void rk4_kernel(vector *v0, int count_v0, double h, int n_x, int n_y,
 /* Callers */
 /***********/
 
-void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, runge_kutta::Fiber **fibers){
   vector *d_v0;
   vector_field d_field;
   vector *d_points, *points_aux;
@@ -225,14 +226,13 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   
   printf("GPU time for RK2: %fs\n", time/1000.0);
   
-  *points = (vector **) malloc(count_v0*sizeof(vector *));
+  *fibers = (runge_kutta::Fiber *) malloc(count_v0*sizeof(runge_kutta::Fiber));
   for(i = 0; i < count_v0; i++){
-    (*points)[i] = (vector *) malloc(n_points_aux[i]*sizeof(vector));
-    for(j = 0; j < n_points_aux[i]; j++)
-      (*points)[i][j] = points_aux[runge_kutta::DataSet::offset(count_v0, 0, i, j, 0)];
+    (*fibers)[i] = runge_kutta::Fiber(n_points_aux[i]);
+    for(j = 0; j < n_points_aux[i]; j++){
+      (*fibers)[i].setPoint(j, points_aux[runge_kutta::DataSet::offset(count_v0, 0, i, j, 0)]);
+    }
   }
-  
-  *n_points = n_points_aux;
   
   cudaFree(d_v0);
   cudaFree(d_field);
@@ -240,7 +240,7 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   cudaFree(d_n_points);
 }
 
-void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, runge_kutta::Fiber **fibers){
   vector *d_v0;
   vector_field d_field;
   vector *d_points, *points_aux;
@@ -289,15 +289,13 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   
   printf("GPU time for RK4: %fs\n", time/1000.0);
   
-  *points = (vector **) malloc(count_v0*sizeof(vector *));
+  *fibers = (runge_kutta::Fiber *) malloc(count_v0*sizeof(runge_kutta::Fiber));
   for(i = 0; i < count_v0; i++){
-    (*points)[i] = (vector *) malloc(n_points_aux[i]*sizeof(vector));
+    (*fibers)[i] = runge_kutta::Fiber(n_points_aux[i]);
     for(j = 0; j < n_points_aux[i]; j++){
-      (*points)[i][j] = points_aux[runge_kutta::DataSet::offset(count_v0, 0, i, j, 0)];
+      (*fibers)[i].setPoint(j, points_aux[runge_kutta::DataSet::offset(count_v0, 0, i, j, 0)]);
     }
   }
-  
-  *n_points = n_points_aux;
   
   cudaFree(d_v0);
   cudaFree(d_field);

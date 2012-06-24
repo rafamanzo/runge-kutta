@@ -4,6 +4,6 @@ namespace runge_kutta{
       FILE *fp;      
     public:
       Input(char *file_name);
-      DataSet parse(double *h, vector **v0, int *v0_count);
+      DataSet parse(double *h, vector **v0, unsigned *v0_count);
   };
 }

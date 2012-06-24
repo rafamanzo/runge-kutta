@@ -4,6 +4,7 @@
 #include<math.h>
 #include<stdio.h>
 #include "../dataset.h"
+#include "../fiber.h"
 #include "../rk.h"
 
 using namespace runge_kutta;
@@ -101,10 +102,10 @@ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_fiel
   }
 }
 
-void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers){
   vector k1, k2, initial, direction;
   vector *points_aux;
-  int i, n_points_aux;
+  int i, j, n_points_aux;
   clock_t start, finish;
   
   points_aux = NULL;
@@ -112,8 +113,7 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   
   start = clock();
   
-  *points = (vector **) malloc(count_v0*sizeof(vector *));
-  *n_points = (int *) malloc(count_v0*sizeof(int));
+  *fibers = (Fiber *) malloc(count_v0*sizeof(Fiber *));
   
   for(i = 0; i < count_v0; i++){
     set( &initial, v0[i] );
@@ -132,8 +132,9 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
       set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
     }
     
-    (*n_points)[i] = n_points_aux;
-    (*points)[i] = points_aux;
+    (*fibers)[i] = Fiber(n_points_aux);
+    for(j = 0; j < n_points_aux; j++)
+      (*fibers)[i].setPoint(j, points_aux[j]);
     points_aux = NULL;
     n_points_aux = 0;
   }
@@ -143,10 +144,10 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   printf("CPU time for RK2: %fs\n", ((double) (finish - start))/CLOCKS_PER_SEC);
 }
 
-void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, vector ***points, int **n_points){
+void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers){
   vector k1, k2, k3, k4, initial, direction;
   vector *points_aux;
-  int i, n_points_aux;
+  int i, j, n_points_aux;
   clock_t start, finish;
   
   points_aux = NULL;
@@ -154,8 +155,7 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   
   start = clock();
   
-  *points = (vector **) malloc(count_v0*sizeof(vector *));
-  *n_points = (int *) malloc(count_v0*sizeof(int));
+  *fibers = (Fiber *) malloc(count_v0*sizeof(Fiber *));
     
   for(i = 0; i < count_v0; i++){
     set( &initial, v0[i] );
@@ -176,8 +176,9 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
       set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
     }
     
-    (*n_points)[i] = n_points_aux;
-    (*points)[i] = points_aux;
+    (*fibers)[i] = Fiber(n_points_aux);
+    for(j = 0; j < n_points_aux; j++)
+      (*fibers)[i].setPoint(j, points_aux[j]);
     points_aux = NULL;
     n_points_aux = 0;
   }

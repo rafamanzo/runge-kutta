@@ -1,5 +1,6 @@
 #include<cstdlib>
 #include "../dataset.h"
+#include "../fiber.h"
 #include "../rk.h"
 #include "rk_kernel.h"
 
@@ -12,10 +13,18 @@ RungeKutta::RungeKutta(DataSet dataset, vector *v0, unsigned count_v0, double h)
   _h = h;
 }
 
-void RungeKutta::order2(vector ***points, int **n_points){
-  rk2_caller(_v0, _count_v0, _h, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field(), points, n_points);
+Fiber *RungeKutta::order2(){
+  Fiber *fibers;
+  
+  rk2_caller(_v0, _count_v0, _h, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field(), &fibers);
+  
+  return fibers;
 }
 
-void RungeKutta::order4(vector ***points, int **n_points){
-  rk4_caller(_v0, _count_v0, _h, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field(), points, n_points);
+Fiber *RungeKutta::order4(){
+  Fiber *fibers;
+     
+  rk4_caller(_v0, _count_v0, _h, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field(), &fibers);
+  
+  return fibers;
 }
