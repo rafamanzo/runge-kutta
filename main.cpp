@@ -18,14 +18,11 @@ int main(int argc, char *argv[]){
   DataSet dataset = file.parse(&h, &v0, &v0_count);
   
   RungeKutta rk = RungeKutta(dataset, v0, v0_count, h);
-  
   Fiber *rk4_fibers = rk.order4();
   Fiber *rk2_fibers = rk.order2();
-  
+
   Output output = Output(dataset, v0_count, rk2_fibers, rk4_fibers);
   output.gnuplotInput();
-
-  free(v0);
   
   return 0;
 }

@@ -5,7 +5,7 @@
 #include<stdio.h>
 #include "../dataset.h"
 #include "../fiber.h"
-#include "../rk.h"
+#include "rk_kernel.h"
 
 using namespace runge_kutta;
 
