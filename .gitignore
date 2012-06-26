@@ -2,7 +2,6 @@
 *.o
 rk
 test
-core
 example
 example3d
 rotationField

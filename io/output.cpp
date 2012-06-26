@@ -1,7 +1,7 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include "dataset.h"
-#include "fiber.h"
+#include<cstdlib>
+#include<cstdio>
+#include "../core/dataset.h"
+#include "../core/fiber.h"
 #include "output.h"
 
 using namespace runge_kutta;

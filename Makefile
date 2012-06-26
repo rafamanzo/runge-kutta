@@ -8,37 +8,37 @@ c: main.o rk_c.o input.o dataset.o fiber.o rk_kernel_c.o output.o
 
 #general objects
 	
-main.o: main.cpp input.h output.h rk.h dataset.h fiber.h
+main.o: main.cpp io/input.h io/output.h core/rk.h core/dataset.h core/fiber.h
 	g++ -c $(C_FLAGS) main.cpp
 	
-input.o: input.cpp input.h dataset.h
-	g++ -c $(C_FLAGS) input.cpp
+input.o: io/input.cpp io/input.h core/dataset.h
+	g++ -c $(C_FLAGS) io/input.cpp
 	
-output.o: output.cpp output.h dataset.h fiber.h
-	g++ -c $(C_FLAGS) output.cpp
+output.o: io/output.cpp io/output.h core/dataset.h core/fiber.h
+	g++ -c $(C_FLAGS) io/output.cpp
 
-dataset.o: dataset.cpp dataset.h
-	g++ -c $(C_FLAGS) dataset.cpp
+dataset.o: core/dataset.cpp core/dataset.h
+	g++ -c $(C_FLAGS) core/dataset.cpp
 
-fiber.o: fiber.cpp fiber.h dataset.h
-	g++ -c $(C_FLAGS) fiber.cpp
+fiber.o: core/fiber.cpp core/fiber.h core/dataset.h
+	g++ -c $(C_FLAGS) core/fiber.cpp
 
 #C++
-rk_c.o: c/rk.cpp rk.h dataset.h fiber.h c/rk_kernel.h
-	g++ -c $(C_FLAGS) c/rk.cpp -o rk_c.o
+rk_c.o: core/c/rk.cpp core/rk.h core/dataset.h core/fiber.h core/c/rk_kernel.h
+	g++ -c $(C_FLAGS) core/c/rk.cpp -o rk_c.o
 	
-rk_kernel_c.o: c/rk_kernel.cpp c/rk_kernel.h dataset.h fiber.h
-	g++ -c  $(C_FLAGS) c/rk_kernel.cpp -o rk_kernel_c.o
+rk_kernel_c.o: core/c/rk_kernel.cpp core/c/rk_kernel.h core/dataset.h core/fiber.h
+	g++ -c  $(C_FLAGS) core/c/rk_kernel.cpp -o rk_kernel_c.o
 	
 #CUDA
 cuda: main.o input.o dataset.o rk_cuda.o rk_cuda_kernel.o fiber.o output.o
 	nvcc main.o input.o rk_cuda_kernel.o rk_cuda.o dataset.o fiber.o output.o -o rk $(CUDA_FLAGS)
 	
-rk_cuda_kernel.o: cuda/rk_kernel.cu cuda/rk_kernel.h dataset.h fiber.h
-	nvcc -c cuda/rk_kernel.cu -o rk_cuda_kernel.o $(CUDA_FLAGS)
+rk_cuda_kernel.o: core/cuda/rk_kernel.cu core/cuda/rk_kernel.h core/dataset.h core/fiber.h
+	nvcc -c core/cuda/rk_kernel.cu -o rk_cuda_kernel.o $(CUDA_FLAGS)
 
-rk_cuda.o: cuda/rk.cpp cuda/rk_kernel.h rk.h dataset.h fiber.h
-	nvcc -c cuda/rk.cpp -o rk_cuda.o $(CUDA_FLAGS)
+rk_cuda.o: core/cuda/rk.cpp core/cuda/rk_kernel.h core/rk.h core/dataset.h core/fiber.h
+	nvcc -c core/cuda/rk.cpp -o rk_cuda.o $(CUDA_FLAGS)
 
 #OTHER
 examples:
