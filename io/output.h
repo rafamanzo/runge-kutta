@@ -7,6 +7,7 @@ namespace runge_kutta{
       Fiber *_rk4Fibers;
     public:
       Output(DataSet dataSet, unsigned fibersCount, Fiber *rk2Fibers, Fiber *rk4Fibers);
-      void gnuplotInput();     
+      void gnuplotInput();
+      void gui();
   };
 }

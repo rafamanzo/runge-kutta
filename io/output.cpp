@@ -1,7 +1,12 @@
 #include<cstdlib>
 #include<cstdio>
+#include <GL/glut.h>
 #include "../core/dataset.h"
 #include "../core/fiber.h"
+#include "gui/primitives/cylinder.h"
+#include "gui/primitives/cylinder_collection.h"
+#include "gui/scene.h"
+#include "gui/window_manager.h"
 #include "output.h"
 
 using namespace runge_kutta;
@@ -41,4 +46,9 @@ void Output::gnuplotInput(){
   fprintf(rk2_vs_rk4, "pause -1");
 
   fclose(rk2_vs_rk4);
+}
+
+void Output::gui(){
+  WindowManager wm = WindowManager(Scene(_fibersCount, _rk2Fibers, _rk4Fibers));
+  wm.loop();
 }

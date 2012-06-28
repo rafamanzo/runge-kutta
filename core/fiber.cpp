@@ -10,6 +10,11 @@ Fiber::Fiber(unsigned pointsCount){
   _points = (vector *) malloc(pointsCount*sizeof(vector));
 }
 
+Fiber::Fiber(){
+  _pointsCount = 0;
+  _points = NULL;
+}
+
 void Fiber::setPoint(unsigned order, vector point){
   _points[order] = point;
 }

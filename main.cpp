@@ -23,6 +23,7 @@ int main(int argc, char *argv[]){
 
   Output output = Output(dataset, v0_count, rk2_fibers, rk4_fibers);
   output.gnuplotInput();
+  output.gui();
   
   return 0;
 }
