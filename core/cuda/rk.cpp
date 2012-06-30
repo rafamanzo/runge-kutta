@@ -1,8 +1,8 @@
 #include<cstdlib>
-#include "../dataset.h"
-#include "../fiber.h"
-#include "../rk.h"
-#include "rk_kernel.h"
+#include<dataset.h>
+#include<fiber.h>
+#include<rk.h>
+#include<rk_cuda_kernel.h>
 
 using namespace runge_kutta;
 

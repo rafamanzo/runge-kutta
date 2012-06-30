@@ -1,11 +1,10 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<time.h>
-#include<math.h>
-#include<stdio.h>
-#include "../dataset.h"
-#include "../fiber.h"
-#include "rk_kernel.h"
+#include<cstdlib>
+#include<ctime>
+#include<cmath>
+#include<cstdio>
+#include<dataset.h>
+#include<fiber.h>
+#include<rk_c_kernel.h>
 
 using namespace runge_kutta;
 

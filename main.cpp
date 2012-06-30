@@ -1,11 +1,11 @@
 #include<cstdio>
 #include<cstdlib>
 #include<cstring>
-#include "core/dataset.h"
-#include "core/fiber.h"
-#include "core/rk.h"
-#include "io/input.h"
-#include "io/output.h"
+#include<dataset.h>
+#include<fiber.h>
+#include<rk.h>
+#include<input.h>
+#include<output.h>
 
 using namespace runge_kutta;
 

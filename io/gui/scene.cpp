@@ -1,10 +1,10 @@
-#include <cstdlib>
-#include <GL/glut.h>
-#include "../../core/dataset.h"
-#include "../../core/fiber.h"
-#include "primitives/cylinder.h"
-#include "primitives/cylinder_collection.h"
-#include "scene.h"
+#include<cstdlib>
+#include<GL/glut.h>
+#include<dataset.h>
+#include<fiber.h>
+#include<cylinder.h>
+#include<cylinder_collection.h>
+#include<scene.h>
 
 using namespace runge_kutta;
 

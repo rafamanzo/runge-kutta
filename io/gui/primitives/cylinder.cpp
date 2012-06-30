@@ -6,11 +6,11 @@
 /* http://lifeofaprogrammergeek.blogspot.com.br/2008/08/opengl-example-rendering-cylinders.html */
 /************************************************************************************************/
 
-#include <GL/glut.h>
-#include <GL/gl.h>
-#include <cmath>
-#include <cstdio>
-#include "cylinder.h"
+#include<GL/glut.h>
+#include<GL/gl.h>
+#include<cmath>
+#include<cstdio>
+#include<cylinder.h>
 
 #define CYLINDER_RADIUS 0.75
 #define CYLINDER_SUBDIVISIONS 36

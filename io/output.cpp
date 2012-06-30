@@ -1,13 +1,13 @@
 #include<cstdlib>
 #include<cstdio>
-#include <GL/glut.h>
-#include "../core/dataset.h"
-#include "../core/fiber.h"
-#include "gui/primitives/cylinder.h"
-#include "gui/primitives/cylinder_collection.h"
-#include "gui/scene.h"
-#include "gui/window_manager.h"
-#include "output.h"
+#include<GL/glut.h>
+#include<dataset.h>
+#include<fiber.h>
+#include<cylinder.h>
+#include<cylinder_collection.h>
+#include<scene.h>
+#include<window_manager.h>
+#include<output.h>
 
 using namespace runge_kutta;
 

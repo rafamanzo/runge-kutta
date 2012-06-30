@@ -1,8 +1,8 @@
 #include<cstdlib>
 #include<cstdio>
 #include<cstring>
-#include "../core/dataset.h"
-#include "input.h"
+#include<dataset.h>
+#include<input.h>
 
 using namespace runge_kutta;
 
