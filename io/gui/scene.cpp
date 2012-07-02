@@ -9,11 +9,11 @@
 using namespace runge_kutta;
 
 Scene::Scene(){
-  _scale = 1.0;
   _x_angle = 0.0;
   _y_angle = 0.0;
   _translation_x = 0.0;
   _translation_y = 0.0;
+  _translation_z = 0.0;
   _display_rk2 = true;
   _display_rk4 = true;
 }
@@ -23,11 +23,11 @@ Scene::Scene(unsigned fibers_count, Fiber *rk2_fibers, Fiber *rk4_fibers){
   Fiber fiber;
   vector initial_point, final_point;
   
-  _scale = 1.0;
   _x_angle = 0.0;
   _y_angle = 0.0;
   _translation_x = 0.0;
   _translation_y = 0.0;
+  _translation_z = 0.0;
   _display_rk2 = true;
   _display_rk4 = true;
   
@@ -55,8 +55,7 @@ void Scene::render(){
     gluLookAt(0, 0,-150, 0,0,0, 0,1,0);
     //TODO: ilumination();    
     
-    glScaled(_scale, _scale, _scale);
-    glTranslated(_translation_x, _translation_y, 0.0);
+    glTranslated(_translation_x, _translation_y, _translation_z);
     
     renderAxis();
     renderCylinders();
@@ -127,11 +126,11 @@ void Scene::decreaseY(){
 }
 
 void Scene::increaseScale(){
-  _scale += 0.05; 
+  _translation_z += 1; 
 }
 
 void Scene::decreaseScale(){
-  _scale -= 0.05; 
+  _translation_z -= 1;
 }
 
 void Scene::ilumination(){

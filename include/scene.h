@@ -3,11 +3,11 @@ namespace runge_kutta{
     private:
       CylinderCollection _rk2_cylinders;
       CylinderCollection _rk4_cylinders;
-      GLdouble _scale;
       GLdouble _x_angle;
       GLdouble _y_angle;
       GLdouble _translation_x;
       GLdouble _translation_y;
+      GLdouble _translation_z;
       bool _display_rk2;
       bool _display_rk4;
       
