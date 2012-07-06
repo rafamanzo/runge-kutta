@@ -6,6 +6,8 @@ example
 example3d
 rotationField
 randomField
+linesField
+gaussianField
 a.out
 out
 plot.dat

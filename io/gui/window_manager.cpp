@@ -57,16 +57,16 @@ void WindowManager::idle(){
 
 void WindowManager::key_pressed (unsigned char key, int x, int y) {  
   if(key == '+')
-    _scene.increaseScale();
-  else if(key == '-')
     _scene.decreaseScale();
-  else if(key == 'w')
-    _scene.increaseY();
+  else if(key == '-')
+    _scene.increaseScale();
   else if(key == 's')
+    _scene.increaseY();
+  else if(key == 'w')
     _scene.decreaseY();
-  else if(key == 'd')
-    _scene.decreaseX();
   else if(key == 'a')
+    _scene.decreaseX();
+  else if(key == 'd')
     _scene.increaseX();
   else if(key == '2')
     _scene.toogleRK2();
@@ -76,9 +76,9 @@ void WindowManager::key_pressed (unsigned char key, int x, int y) {
 
 void WindowManager::key_pressed_special (int key, int x, int y) {  
   if(key == GLUT_KEY_LEFT)
-    _scene.increaseYAngle();
-  else if(key == GLUT_KEY_RIGHT)
     _scene.decreaseYAngle();
+  else if(key == GLUT_KEY_RIGHT)
+    _scene.increaseYAngle();
   else if(key == GLUT_KEY_UP)
     _scene.decreaseXAngle();
   else if(key == GLUT_KEY_DOWN)
