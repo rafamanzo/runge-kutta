@@ -193,17 +193,24 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   
   cudaEventRecord(start, 0);
   
-  if(cudaMalloc(&d_v0, count_v0*sizeof(vector)) == cudaErrorMemoryAllocation)
+  if(cudaMalloc(&d_v0, count_v0*sizeof(vector)) == cudaErrorMemoryAllocation){
+    printf("\nCould not allocate %fMB for the initial points\n", (count_v0*sizeof(vector))/1024.0/1024.0);
     exit(-1);
-  if(cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector)) == cudaErrorMemoryAllocation)
+  }
+  if(cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector)) == cudaErrorMemoryAllocation){
+    printf("\nCould not allocate %fMB for the vector field\n", (n_x*n_y*n_z*sizeof(vector))/1024.0/1024.0);
     exit(-1);
-  if(cudaMalloc(&d_n_points, count_v0*sizeof(int)) == cudaErrorMemoryAllocation)
+  }
+  if(cudaMalloc(&d_n_points, count_v0*sizeof(int)) == cudaErrorMemoryAllocation){
+    printf("\nCould not allocate %fMB for the points count vector\n", (count_v0*sizeof(vector))/1024.0/1024.0);
     exit(-1);
+  }
   cudaMemGetInfo(&available, &total);
   max_points = ((available*0.9)/(sizeof(vector)*count_v0));
-  if(cudaMalloc(&d_points, count_v0*max_points*sizeof(vector)) == cudaErrorMemoryAllocation)
+  if(cudaMalloc(&d_points, count_v0*max_points*sizeof(vector)) == cudaErrorMemoryAllocation){
+    printf("\nCould not allocate %fMB for the fibers\n", (count_v0*max_points*sizeof(vector))/1024.0/1024.0);
     exit(-1);
-  
+  }  
   cudaMemcpy(d_v0, v0, count_v0*sizeof(vector), cudaMemcpyHostToDevice);
   cudaMemcpy(d_field, field, n_x*n_y*n_z*sizeof(vector), cudaMemcpyHostToDevice);
   
@@ -255,16 +262,24 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   
   cudaEventRecord(start, 0);
   
-  if(cudaMalloc(&d_v0, count_v0*sizeof(vector)) == cudaErrorMemoryAllocation)
+  if(cudaMalloc(&d_v0, count_v0*sizeof(vector)) == cudaErrorMemoryAllocation){
+    printf("\nCould not allocate %fMB for the initial points\n", (count_v0*sizeof(vector))/1024.0/1024.0);
     exit(-1);
-  if(cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector)) == cudaErrorMemoryAllocation)
+  }
+  if(cudaMalloc(&d_field, n_x*n_y*n_z*sizeof(vector)) == cudaErrorMemoryAllocation){
+    printf("\nCould not allocate %fMB for the vector field\n", (n_x*n_y*n_z*sizeof(vector))/1024.0/1024.0);
     exit(-1);
-  if(cudaMalloc(&d_n_points, count_v0*sizeof(int)) == cudaErrorMemoryAllocation)
+  }
+  if(cudaMalloc(&d_n_points, count_v0*sizeof(int)) == cudaErrorMemoryAllocation){
+    printf("\nCould not allocate %fMB for the points count vector\n", (count_v0*sizeof(vector))/1024.0/1024.0);
     exit(-1);
+  }
   cudaMemGetInfo(&available, &total);
   max_points = ((available*0.9)/(sizeof(vector)*count_v0));
-  if(cudaMalloc(&d_points, count_v0*max_points*sizeof(vector)) == cudaErrorMemoryAllocation)
+  if(cudaMalloc(&d_points, count_v0*max_points*sizeof(vector)) == cudaErrorMemoryAllocation){
+    printf("\nCould not allocate %fMB for the fibers\n", (count_v0*max_points*sizeof(vector))/1024.0/1024.0);
     exit(-1);
+  }
   
   cudaMemcpy(d_v0, v0, count_v0*sizeof(vector), cudaMemcpyHostToDevice);
   cudaMemcpy(d_field, field, n_x*n_y*n_z*sizeof(vector), cudaMemcpyHostToDevice);

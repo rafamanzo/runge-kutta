@@ -63,6 +63,8 @@ rk_cuda.o: core/cuda/rk.cpp include/rk_cuda_kernel.h include/rk.h include/datase
 examples:
 	php example-factories/rotation.php
 	php example-factories/random.php
+	php example-factories/lines.php
+	php example-factories/gaussian.php
 
 clean_compiling_results:
 	rm -f *.o rk
@@ -71,9 +73,9 @@ clean_plot:
 	rm -f rk2.dat rk4.dat rk2-vs-rk4.p
 	
 clean_others:
-	rm -f *~ c/*~ cuda/*~ opencl/*~
+	rm -f *~ example-factories/*~ include/*~ core/*~ core/c/*~ core/cuda/*~ core/opencl/*~ io/*~ io/gui/*~ io/gui/primitives/*~
 	
 clean_examples:
-	rm -f rotationField randomField
+	rm -f rotationField randomField gaussianField linesField
   
 clean: clean_compiling_results clean_others clean_plot
