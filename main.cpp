@@ -13,8 +13,12 @@ int main(int argc, char *argv[]){
   unsigned v0_count;
   vector *v0;
   double h;
-  
-  Input file = Input(argv[1]);
+  Input file;
+  if(strcmp(argv[1], "--analyze") != 0){
+    file = Input(argv[1], Input::NATIVE_TYPE);
+  }else{
+    file = Input(argv[2], Input::ANALYZE_TYPE);
+  }
   DataSet dataset = file.parse(&h, &v0, &v0_count);
   
   RungeKutta rk = RungeKutta(dataset, v0, v0_count, h);

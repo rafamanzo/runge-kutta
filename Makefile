@@ -3,7 +3,7 @@
 #vars
 CUDA_FLAGS=-arch sm_20
 C_FLAGS=-Wall -pedantic
-STATIC_LIBS=-lglut -lGL -lGLU -lm
+STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
 
 GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_manager.o scene.o cylinder_collection.o
 
