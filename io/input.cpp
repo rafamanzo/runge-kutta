@@ -108,9 +108,9 @@ DataSet Input::parseAnalyze(double *h, vector **v0, unsigned *v0_count){
   for(k = 0; k < *n_z; k++){
     for(i = 0; i < *n_x; i++){
       for(j = 0; j < *n_y; j++){
-        ((*field)[DataSet::offset(*n_x, *n_y, i, j, k)]).x = img(i,j,k,3)*multiplier;
-        ((*field)[DataSet::offset(*n_x, *n_y, i, j, k)]).y = img(i,j,k,4)*multiplier;
-        ((*field)[DataSet::offset(*n_x, *n_y, i, j, k)]).z = img(i,j,k,5)*multiplier;
+        ((*field)[DataSet::offset(*n_x, *n_y, i, j, k)]).x = img(i,j,k,0)*multiplier;
+        ((*field)[DataSet::offset(*n_x, *n_y, i, j, k)]).y = img(i,j,k,1)*multiplier;
+        ((*field)[DataSet::offset(*n_x, *n_y, i, j, k)]).z = img(i,j,k,2)*multiplier;
       }
     }
   }
