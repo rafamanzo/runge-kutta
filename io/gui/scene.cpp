@@ -1,10 +1,15 @@
 #include<cstdlib>
+#include<cmath>
 #include<GL/glut.h>
 #include<dataset.h>
 #include<fiber.h>
 #include<cylinder.h>
 #include<cylinder_collection.h>
+#include<cone.h>
+#include<cone_collection.h>
 #include<scene.h>
+
+#define MIN_FIELD_VEC_MAG 0.000001
 
 using namespace runge_kutta;
 
@@ -16,10 +21,11 @@ Scene::Scene(){
   _translation_z = 0.0;
   _display_rk2 = true;
   _display_rk4 = true;
+  _display_vf = false;
 }
 
-Scene::Scene(unsigned fibers_count, Fiber *rk2_fibers, Fiber *rk4_fibers){
-  unsigned fiber_index, point_index;
+Scene::Scene(DataSet data_set, unsigned fibers_count, Fiber *rk2_fibers, Fiber *rk4_fibers){
+  unsigned fiber_index, point_index, i, j, k;
   Fiber fiber;
   vector initial_point, final_point;
   
@@ -30,8 +36,11 @@ Scene::Scene(unsigned fibers_count, Fiber *rk2_fibers, Fiber *rk4_fibers){
   _translation_z = 0.0;
   _display_rk2 = true;
   _display_rk4 = true;
-  
+  _display_vf = false;
+    
+  //Fibers abstraction
   for(fiber_index = 0; fiber_index < fibers_count; fiber_index++){
+    //RK2
     fiber = rk2_fibers[fiber_index];
     for(point_index = 1; point_index < fiber.pointsCount(); point_index++){
       initial_point = fiber.getPoint(point_index - 1);
@@ -39,6 +48,7 @@ Scene::Scene(unsigned fibers_count, Fiber *rk2_fibers, Fiber *rk4_fibers){
       _rk2_cylinders.addCylinder(initial_point, final_point);
     }
     
+    //RK4
     fiber = rk4_fibers[fiber_index];
     for(point_index = 1; point_index < fiber.pointsCount(); point_index++){
       initial_point = fiber.getPoint(point_index - 1);
@@ -46,6 +56,25 @@ Scene::Scene(unsigned fibers_count, Fiber *rk2_fibers, Fiber *rk4_fibers){
       _rk4_cylinders.addCylinder(initial_point, final_point);
     }
   }
+  
+  //Dataset abstraction
+  for(i = 0; i < data_set.n_x(); i++)
+    for(j = 0; j < data_set.n_y(); j++)
+      for(k = 0; k < data_set.n_z(); k++){
+        initial_point.x = (double) i;
+        initial_point.y = (double) j;
+        initial_point.z = (double) k;
+        
+        final_point.x = (double) (i + data_set.field(i, j, k).x);
+        final_point.y = (double) (j + data_set.field(i, j, k).y);
+        final_point.z = (double) (k + data_set.field(i, j, k).z);
+        
+        if(sqrt(data_set.field(i, j, k).x*data_set.field(i, j, k).x +
+                data_set.field(i, j, k).y*data_set.field(i, j, k).y +
+                data_set.field(i, j, k).z*data_set.field(i, j, k).z
+               ) > MIN_FIELD_VEC_MAG)
+          _vector_field.addCone(initial_point, final_point);
+      }
 }
 
 void Scene::render(){
@@ -58,8 +87,13 @@ void Scene::render(){
     glTranslated(_translation_x, _translation_y, _translation_z);
     
     renderAxis();
+    renderVectorField();
     renderCylinders();
   glPopMatrix();
+}
+
+void Scene::renderVectorField(){
+  if(_display_vf) _vector_field.render(0.0,0.0,1.0, _x_angle, _y_angle);
 }
 
 void Scene::renderAxis(){
@@ -165,4 +199,8 @@ void Scene::toogleRK2(){
 
 void Scene::toogleRK4(){
   _display_rk4 = !_display_rk4;
+}
+
+void Scene::toogleDS(){
+  _display_vf = !_display_vf;
 }

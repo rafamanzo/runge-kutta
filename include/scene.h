@@ -1,6 +1,7 @@
 namespace runge_kutta{
   class Scene{
     private:
+      ConeCollection _vector_field;
       CylinderCollection _rk2_cylinders;
       CylinderCollection _rk4_cylinders;
       GLdouble _x_angle;
@@ -10,13 +11,15 @@ namespace runge_kutta{
       GLdouble _translation_z;
       bool _display_rk2;
       bool _display_rk4;
+      bool _display_vf;
       
+      void renderVectorField();
       void renderAxis();
       void renderCylinders();
       void ilumination();
     public:
       Scene();
-      Scene(unsigned fibers_count, Fiber *rk2_fibers, Fiber *rk4_fibers);
+      Scene(DataSet data_set, unsigned fibers_count, Fiber *rk2_fibers, Fiber *rk4_fibers);
       void render();
       void increaseXAngle();
       void decreaseXAngle();
@@ -30,5 +33,6 @@ namespace runge_kutta{
       void decreaseScale();
       void toogleRK2();
       void toogleRK4();
+      void toogleDS();
   };
 }

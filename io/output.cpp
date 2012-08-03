@@ -5,6 +5,8 @@
 #include<fiber.h>
 #include<cylinder.h>
 #include<cylinder_collection.h>
+#include<cone.h>
+#include<cone_collection.h>
 #include<scene.h>
 #include<window_manager.h>
 #include<output.h>
@@ -49,6 +51,6 @@ void Output::gnuplotInput(){
 }
 
 void Output::gui(){
-  WindowManager wm = WindowManager(Scene(_fibersCount, _rk2Fibers, _rk4Fibers));
+  WindowManager wm = WindowManager(Scene(_dataSet, _fibersCount, _rk2Fibers, _rk4Fibers));
   wm.loop();
 }

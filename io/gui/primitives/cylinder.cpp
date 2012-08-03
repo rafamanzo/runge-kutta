@@ -12,8 +12,8 @@
 #include<cstdio>
 #include<cylinder.h>
 
-#define CYLINDER_RADIUS 0.75
-#define CYLINDER_SUBDIVISIONS 36
+#define CYLINDER_RADIUS 0.25
+#define CYLINDER_SUBDIVISIONS 3
 
 using namespace runge_kutta;
 
@@ -31,6 +31,7 @@ void Cylinder::render(GLfloat red, GLfloat green, GLfloat blue, GLdouble angle_x
   GLUquadricObj *_quadric;
   
   _quadric = gluNewQuadric();
+  //gluQuadricDrawStyle(_quadric, GLU_LINE); /* wireframe */
   gluQuadricNormals(_quadric, GLU_SMOOTH);
   
   vx = _x2 - _x1;

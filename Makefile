@@ -5,7 +5,7 @@ CUDA_FLAGS=-arch sm_20
 C_FLAGS=-Wall -pedantic
 STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
 
-GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_manager.o scene.o cylinder_collection.o
+GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_manager.o scene.o cylinder_collection.o cone.o cone_collection.o
 
 LIBRARIES_PATH=include
 
@@ -35,6 +35,12 @@ cylinder.o: io/gui/primitives/cylinder.cpp include/cylinder.h
 	
 cylinder_collection.o: io/gui/primitives/cylinder_collection.cpp include/cylinder_collection.h include/dataset.h include/cylinder.h
 	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cylinder_collection.cpp
+
+cone.o: io/gui/primitives/cone.cpp include/cone.h
+	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cone.cpp
+	
+cone_collection.o: io/gui/primitives/cone_collection.cpp include/cone_collection.h include/dataset.h include/cone.h
+	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cone_collection.cpp
 
 dataset.o: core/dataset.cpp include/dataset.h
 	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) core/dataset.cpp

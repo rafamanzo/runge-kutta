@@ -3,6 +3,8 @@
 #include<fiber.h>
 #include<cylinder.h>
 #include<cylinder_collection.h>
+#include<cone.h>
+#include<cone_collection.h>
 #include<scene.h>
 #include<window_manager.h>
 
@@ -72,6 +74,8 @@ void WindowManager::key_pressed (unsigned char key, int x, int y) {
     _scene.toogleRK2();
   else if(key == '4')
     _scene.toogleRK4();
+  else if(key == 'f')
+    _scene.toogleDS();
 }
 
 void WindowManager::key_pressed_special (int key, int x, int y) {  
