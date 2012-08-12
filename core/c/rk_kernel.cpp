@@ -6,6 +6,8 @@
 #include<fiber.h>
 #include<rk_c_kernel.h>
 
+#define MAX_POINTS 20000
+
 using namespace runge_kutta;
 
 vector sum(vector v1, vector v2){
@@ -70,10 +72,10 @@ vector nearest_neighbour(vector v0, int n_x, int n_y, int n_z, vector_field fiel
 }
 
 vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_field field){
-  int x1, y1, z1, x0, y0, z0, xd, yd, zd;
-  vector zero, i1, i2, j1, j2, w1, w2;
+  int x1, y1, z1, x0, y0, z0;
+  double xd, yd, zd;
   
-  zero.x = zero.y = zero.z = 0.0;
+  vector P1, P2, P3, P4, P5, P6, P7, P8, X1, X2, X3, X4, Y1, Y2, final;
   
   x1 = ceil(v0.x);
   y1 = ceil(v0.y);
@@ -81,23 +83,32 @@ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_fiel
   x0 = floor(v0.x);
   y0 = floor(v0.y);
   z0 = floor(v0.z);
+  xd = v0.x - x0;
+  yd = v0.y - y0;
+  zd = v0.z - z0;
   
   if(x1 >= n_x || y1 >= n_y || z1 >= n_z || x0 < 0 || y0 < 0 || z0 < 0){
     return nearest_neighbour(v0, n_x, n_y, n_z, field);
   }else{
-    xd = (v0.x - x0)/(x1 - x0);
-    yd = (v0.y - y0)/(y1 - y0);
-    zd = (v0.z - z0)/(z1 - z0);
+    set(&P1, field[DataSet::offset(n_x, n_y, x0, y0, z0)]);
+    set(&P2, field[DataSet::offset(n_x, n_y, x1, y0, z0)]);
+    set(&P3, field[DataSet::offset(n_x, n_y, x0, y0, z1)]);
+    set(&P4, field[DataSet::offset(n_x, n_y, x1, y0, z1)]);
+    set(&P5, field[DataSet::offset(n_x, n_y, x0, y1, z0)]);
+    set(&P6, field[DataSet::offset(n_x, n_y, x1, y1, z0)]);
+    set(&P7, field[DataSet::offset(n_x, n_y, x0, y1, z1)]);
+    set(&P8, field[DataSet::offset(n_x, n_y, x1, y1, z1)]);
     
-    set(&i1, sum( mult_scalar(field[DataSet::offset(n_x, n_y, x0, y0, z0)], (1.0 - zd)), mult_scalar(field[DataSet::offset(n_x, n_y, x0, y0, z1)], zd) ) );
-    set(&i2, sum( mult_scalar(field[DataSet::offset(n_x, n_y, x0, y1, z0)], (1.0 - zd)), mult_scalar(field[DataSet::offset(n_x, n_y, x0, y1, z1)], zd) ) );
-    set(&j1, sum( mult_scalar(field[DataSet::offset(n_x, n_y, x1, y0, z0)], (1.0 - zd)), mult_scalar(field[DataSet::offset(n_x, n_y, x1, y0, z1)], zd) ) );
-    set(&j2, sum( mult_scalar(field[DataSet::offset(n_x, n_y, x1, y1, z0)], (1.0 - zd)), mult_scalar(field[DataSet::offset(n_x, n_y, x1, y1, z1)], zd) ) );
+    set(&X1, P1); X1.x += (P2.x - P1.x)*(xd);
+    set(&X2, P3); X2.x += (P4.x - P3.x)*(xd);
+    set(&X3, P5); X3.x += (P6.x - P5.x)*(xd);
+    set(&X3, P7); X4.x += (P8.x - P7.x)*(xd);
     
-    set(&w1, sum( mult_scalar(i1, (1.0 - yd)), mult_scalar(i2, yd) ) );
-    set(&w2, sum( mult_scalar(j1, (1.0 - yd)), mult_scalar(j2, yd) ) );
+    set(&Y1, X1); Y1.y += (X2.y - X1.y)*(yd);
+    set(&Y2, X3); Y2.y += (X4.y - X3.y)*(yd);
     
-    return sum( mult_scalar(w1, (1.0 - xd)), mult_scalar(w2, xd) );
+    set(&final, Y1); final.z += (Y2.z - Y1.z)*(zd);
+    return final;
   }
 }
 
@@ -118,7 +129,7 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
     set( &initial, v0[i] );
     set( &direction, field[DataSet::offset(n_x, n_y, initial.x, initial.y, initial.z)] );
     
-    while(floor(module(direction)) > 0.0){
+    while(module(direction) > 0 && n_points_aux < MAX_POINTS){
       n_points_aux++;
       points_aux = (vector *) realloc(points_aux, n_points_aux*sizeof(vector));
           
@@ -160,16 +171,21 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
     set( &initial, v0[i] );
     set( &direction, field[DataSet::offset(n_x, n_y, initial.x, initial.y, initial.z)] );
     
-    while(floor(module(direction)) > 0.0){
+    while(module(direction) > 0.0 && n_points_aux < MAX_POINTS){
       n_points_aux++;
       points_aux = (vector *) realloc(points_aux, n_points_aux*sizeof(vector));
           
       set( &(points_aux[n_points_aux - 1]), initial);
     
       set( &k1, mult_scalar( direction, h ) );
+      set( &k2, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k1, 0.5 )), n_x, n_y, n_z, field), h) ); 
+      set( &k3, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k2, 0.5 )), n_x, n_y, n_z, field), h) );
+      set( &k4, mult_scalar( trilinear_interpolation(sum(initial, k3), n_x, n_y, n_z, field), h) );
+      
+      /*set( &k1, mult_scalar( direction, h ) );
       set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
       set( &k3, sum( mult_scalar(k2, 0.5), mult_scalar( direction, h ) ) );
-      set( &k4, sum( k3, mult_scalar( direction, h ) ) );
+      set( &k4, sum( k3, mult_scalar( direction, h ) ) );*/
       
       set( &initial, sum( initial, sum( mult_scalar( k1 , 0.166666667 ), sum( mult_scalar( k2, 0.333333333 ), sum( mult_scalar( k3, 0.333333333 ), mult_scalar( k4, 0.166666667 ) ) ) ) ) );
       set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
