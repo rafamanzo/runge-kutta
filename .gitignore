@@ -19,3 +19,6 @@ dhelix.img
 dhelix_vector.hdr
 dhelix_vector.img
 dhelix_vector.in
+gtest*
+tests_runner
+libgtest.a

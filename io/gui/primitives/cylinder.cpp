@@ -13,7 +13,7 @@
 #include<cylinder.h>
 
 #define CYLINDER_RADIUS 0.25
-#define CYLINDER_SUBDIVISIONS 3
+#define CYLINDER_SUBDIVISIONS 8
 
 using namespace runge_kutta;
 

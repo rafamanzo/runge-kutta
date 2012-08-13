@@ -10,7 +10,6 @@
 
 #define CONE_RADIUS 0.1
 #define CONE_SUBDIVISIONS 36
-#define CONE_HEIGHT 0.5
 
 using namespace runge_kutta;
 

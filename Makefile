@@ -1,4 +1,4 @@
-.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda c
+.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda c gtest
 
 #vars
 CUDA_FLAGS=-arch sm_20
@@ -8,6 +8,7 @@ STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
 GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_manager.o scene.o cylinder_collection.o cone.o cone_collection.o
 
 LIBRARIES_PATH=include
+GTEST_PATH=gtest-1.6.0
 
 #default C++ version
 c: $(GENERAL_OBJECTS) rk_c.o rk_kernel_c.o
@@ -65,6 +66,25 @@ rk_cuda_kernel.o: core/cuda/rk_kernel.cu include/rk_cuda_kernel.h include/datase
 rk_cuda.o: core/cuda/rk.cpp include/rk_cuda_kernel.h include/rk.h include/dataset.h include/fiber.h
 	nvcc -c -I$(LIBRARIES_PATH) core/cuda/rk.cpp -o rk_cuda.o $(CUDA_FLAGS)
 
+#TESTS
+gtest:
+	wget http://googletest.googlecode.com/files/gtest-1.6.0.zip
+	unzip gtest-1.6.0.zip
+	g++ -I$(GTEST_PATH)/include -I$(GTEST_PATH) -c $(GTEST_PATH)/src/gtest-all.cc
+	ar -rv libgtest.a gtest-all.o
+	
+tests_runner: tests_main.o rk_kernel_fixture.o rk_kernel_tests.o dataset.o fiber.o rk_kernel_c.o
+	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) tests_main.o rk_kernel_fixture.o rk_kernel_tests.o rk_kernel_c.o dataset.o fiber.o libgtest.a -lpthread -o tests_runner
+
+tests_main.o: tests/main.cpp
+	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/main.cpp -o tests_main.o
+
+rk_kernel_fixture.o: include/dataset.h tests/fixtures/rk_kernel_fixture.cpp tests/include/rk_kernel_fixture.h
+	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/fixtures/rk_kernel_fixture.cpp
+
+rk_kernel_tests.o: tests/units/rk_kernel_tests.cpp tests/fixtures/rk_kernel_fixture.cpp include/dataset.h include/fiber.h include/rk_c_kernel.h
+	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/units/rk_kernel_tests.cpp
+
 #OTHER
 examples:
 	php example-factories/rotation.php
@@ -83,5 +103,9 @@ clean_others:
 	
 clean_examples:
 	rm -f rotationField randomField gaussianField linesField
-  
+
+clean_tests:
+	rm -f libgtest.a gtest-1.6.0.zip
+	rm -rf gtest-1.6.0 
+	
 clean: clean_compiling_results clean_others clean_plot
