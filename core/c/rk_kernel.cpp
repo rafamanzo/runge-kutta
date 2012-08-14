@@ -136,7 +136,7 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
       set( &(points_aux[n_points_aux - 1]), initial);
     
       set( &k1, mult_scalar( direction, h ) );
-      set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
+      set( &k2, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k1, 0.5 )), n_x, n_y, n_z, field), h) ); 
       
       set( &initial, sum( initial, k2) );
       set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
