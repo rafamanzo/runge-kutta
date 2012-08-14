@@ -102,12 +102,13 @@ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_fiel
     set(&X1, P1); X1.x += (P2.x - P1.x)*(xd);
     set(&X2, P3); X2.x += (P4.x - P3.x)*(xd);
     set(&X3, P5); X3.x += (P6.x - P5.x)*(xd);
-    set(&X3, P7); X4.x += (P8.x - P7.x)*(xd);
-        
+    set(&X4, P7); X4.x += (P8.x - P7.x)*(xd);
+    
     set(&Y1, X1); Y1.y += (X3.y - X1.y)*(yd);
     set(&Y2, X2); Y2.y += (X4.y - X2.y)*(yd);
     
     set(&final, Y1); final.z += (Y2.z - Y1.z)*(zd);
+    
     return final;
   }
 }

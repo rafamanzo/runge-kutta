@@ -9,7 +9,7 @@ using namespace runge_kutta;
 
 void RKKernelFixture::SetUp(){
   vector_field vf, vf2;
-  int i;
+  int i, j, k, index;
   
   vf = (vector_field) malloc(8*sizeof(vector));
   for(i = 0; i < 8; i++){
@@ -21,9 +21,19 @@ void RKKernelFixture::SetUp(){
   _dataset = DataSet(2, 2, 2, vf);
   
   vf2 = (vector_field) malloc(8*sizeof(vector));
-  for(i = 0; i < 4; i++){ vf2[i].x = 1.0; vf2[i].y = 0; vf2[i].z = 0; }
-  for(i = 4; i < 8; i++){ vf2[i].x = 0; vf2[i].y = 1.0; vf2[i].z = 0; }
-    
+  for(i = 0; i < 2; i++){
+    for(j = 0; j < 2; j++){
+      for(k = 0; k < 2; k++){
+        index = i + 2*j + 4*k;
+        if(j == 0){
+          vf2[index].x = 1.0; vf2[index].y = 0; vf2[index].z = 0;
+        }else{
+          vf2[index].x = 0; vf2[index].y = 1.0; vf2[index].z = 0;
+        }
+      }
+    }
+  }
+   
   _dataset2 = DataSet(2, 2, 2, vf2);
   
   _v1.x = 10; _v1.y = 5; _v1.z = 0;
