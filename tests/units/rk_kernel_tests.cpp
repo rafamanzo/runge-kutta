@@ -86,7 +86,7 @@ TEST_F(RKKernelFixture, trilinear_interpolation){
   EXPECT_EQ(aux.y, (trilinear_interpolation(_v_middle, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field())).y);
   EXPECT_EQ(aux.z, (trilinear_interpolation(_v_middle, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field())).z);
   
-  aux.x = 1; aux.y = 0.5; aux.z = 0;
+  aux.x = 0.5; aux.y = 0.5; aux.z = 0;
   
   EXPECT_EQ(aux.x, (trilinear_interpolation(_v_middle, _dataset2.n_x(), _dataset2.n_y(), _dataset2.n_z(), _dataset2.field())).x);
   EXPECT_EQ(aux.y, (trilinear_interpolation(_v_middle, _dataset2.n_x(), _dataset2.n_y(), _dataset2.n_z(), _dataset2.field())).y);

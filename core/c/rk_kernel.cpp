@@ -6,7 +6,7 @@
 #include<fiber.h>
 #include<rk_c_kernel.h>
 
-#define MAX_POINTS 2000
+#define MAX_POINTS 10000
 
 using namespace runge_kutta;
 
@@ -18,6 +18,16 @@ vector sum(vector v1, vector v2){
   sum.z = v1.z + v2.z;
   
   return sum;
+}
+
+vector subtract(vector v1, vector v2){
+  vector subtraction;
+  
+  subtraction.x = v1.x - v2.x;
+  subtraction.y = v1.y - v2.y;
+  subtraction.z = v1.z - v2.z;
+  
+  return subtraction;
 }
 
 vector mult_scalar(vector v, double scalar){
@@ -99,15 +109,15 @@ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_fiel
     set(&P7, field[DataSet::offset(n_x, n_y, x0, y1, z1)]);
     set(&P8, field[DataSet::offset(n_x, n_y, x1, y1, z1)]);
     
-    set(&X1, P1); X1.x += (P2.x - P1.x)*(xd);
-    set(&X2, P3); X2.x += (P4.x - P3.x)*(xd);
-    set(&X3, P5); X3.x += (P6.x - P5.x)*(xd);
-    set(&X4, P7); X4.x += (P8.x - P7.x)*(xd);
+    set(&X1, sum(P1, mult_scalar( subtract(P2, P1) , xd ) ));
+    set(&X2, sum(P3, mult_scalar( subtract(P4, P3) , xd ) ));
+    set(&X3, sum(P5, mult_scalar( subtract(P6, P5) , xd ) ));
+    set(&X4, sum(P7, mult_scalar( subtract(P8, P7) , xd ) ));
     
-    set(&Y1, X1); Y1.y += (X3.y - X1.y)*(yd);
-    set(&Y2, X2); Y2.y += (X4.y - X2.y)*(yd);
+    set(&Y1, sum(X1, mult_scalar( subtract(X3, X1) , yd ) ));
+    set(&Y2, sum(X2, mult_scalar( subtract(X4, X2) , yd ) ));
     
-    set(&final, Y1); final.z += (Y2.z - Y1.z)*(zd);
+    set(&final, sum(Y1, mult_scalar( subtract(Y2, Y1) , zd ) ));
     
     return final;
   }
@@ -182,11 +192,6 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
       set( &k2, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k1, 0.5 )), n_x, n_y, n_z, field), h) ); 
       set( &k3, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k2, 0.5 )), n_x, n_y, n_z, field), h) );
       set( &k4, mult_scalar( trilinear_interpolation(sum(initial, k3), n_x, n_y, n_z, field), h) );
-      
-      /*set( &k1, mult_scalar( direction, h ) );
-      set( &k2, sum( mult_scalar(k1, 0.5), mult_scalar( direction, h ) ) );
-      set( &k3, sum( mult_scalar(k2, 0.5), mult_scalar( direction, h ) ) );
-      set( &k4, sum( k3, mult_scalar( direction, h ) ) );*/
       
       set( &initial, sum( initial, sum( mult_scalar( k1 , 0.166666667 ), sum( mult_scalar( k2, 0.333333333 ), sum( mult_scalar( k3, 0.333333333 ), mult_scalar( k4, 0.166666667 ) ) ) ) ) );
       set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
