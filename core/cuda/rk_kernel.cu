@@ -7,8 +7,6 @@
 #include<fiber.h>
 #include<rk_cuda_kernel.h>
 
-#define MAX_POINTS 10000
-
 /******************************/
 /* Auxiliary Vector Functions */
 /******************************/

@@ -6,8 +6,6 @@
 #include<fiber.h>
 #include<rk_c_kernel.h>
 
-#define MAX_POINTS 10000
-
 using namespace runge_kutta;
 
 vector sum(vector v1, vector v2){
