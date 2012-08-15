@@ -30,6 +30,20 @@ TEST_F(RKKernelFixture, sum){
   EXPECT_EQ((sum(_v2, _v1)).z, (sum(_v1, _v2)).z);
 }
 
+TEST_F(RKKernelFixture, subtract){
+  EXPECT_EQ(_v_zero.x, (subtract(_v2, _v2)).x);
+  EXPECT_EQ(_v_zero.y, (subtract(_v2, _v2)).y);
+  EXPECT_EQ(_v_zero.z, (subtract(_v2, _v2)).z);
+  
+  EXPECT_EQ(_v1.x, (subtract(_v1, _v_zero)).x);
+  EXPECT_EQ(_v1.y, (subtract(_v1, _v_zero)).y);
+  EXPECT_EQ(_v1.z, (subtract(_v1, _v_zero)).z);
+  
+  EXPECT_EQ(10, (subtract(_v1, _v2)).x);
+  EXPECT_EQ(0, (subtract(_v1, _v2)).y);
+  EXPECT_EQ(-10, (subtract(_v1, _v2)).z);
+}
+
 TEST_F(RKKernelFixture, mult_scalar){
   EXPECT_EQ(15, (mult_scalar(_v1, 1.5)).x);
   EXPECT_EQ(7.5, (mult_scalar(_v1, 1.5)).y);
