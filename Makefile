@@ -3,6 +3,8 @@
 #vars
 CUDA_FLAGS=-arch sm_20
 C_FLAGS=-Wall -pedantic
+C_EXTRA_FLAGS=-Wextra 
+C_ALL_FLAGS=$(C_FLAGS) $(C_EXTRA_FLAGS)
 STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
 
 GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_manager.o scene.o cylinder_collection.o cone.o cone_collection.o
@@ -12,49 +14,49 @@ GTEST_PATH=gtest-1.6.0
 
 #default C++ version
 c: $(GENERAL_OBJECTS) rk_c.o rk_kernel_c.o
-	g++ $(C_FLAGS) -I$(LIBRARIES_PATH) $(GENERAL_OBJECTS) rk_c.o rk_kernel_c.o -o rk $(STATIC_LIBS)
+	g++ $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) $(GENERAL_OBJECTS) rk_c.o rk_kernel_c.o -o rk $(STATIC_LIBS)
 
 #general objects
 	
 main.o: main.cpp include/input.h include/output.h include/rk.h include/dataset.h include/fiber.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) main.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) main.cpp
 	
 input.o: io/input.cpp include/input.h include/dataset.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/input.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) io/input.cpp
 	
 output.o: io/output.cpp include/output.h include/dataset.h include/fiber.h include/scene.h include/window_manager.h include/cylinder.h include/cylinder_collection.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/output.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) io/output.cpp
 
 scene.o: io/gui/scene.cpp include/scene.h include/cylinder_collection.h include/cylinder.h include/dataset.h include/fiber.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/scene.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) io/gui/scene.cpp
 	
 window_manager.o: io/gui/window_manager.cpp include/window_manager.h include/dataset.h include/fiber.h include/cylinder.h include/cylinder_collection.h
 	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/window_manager.cpp
 	
 cylinder.o: io/gui/primitives/cylinder.cpp include/cylinder.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cylinder.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cylinder.cpp
 	
 cylinder_collection.o: io/gui/primitives/cylinder_collection.cpp include/cylinder_collection.h include/dataset.h include/cylinder.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cylinder_collection.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cylinder_collection.cpp
 
 cone.o: io/gui/primitives/cone.cpp include/cone.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cone.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cone.cpp
 	
 cone_collection.o: io/gui/primitives/cone_collection.cpp include/cone_collection.h include/dataset.h include/cone.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cone_collection.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) io/gui/primitives/cone_collection.cpp
 
 dataset.o: core/dataset.cpp include/dataset.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) core/dataset.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/dataset.cpp
 
 fiber.o: core/fiber.cpp include/fiber.h include/dataset.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) core/fiber.cpp
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/fiber.cpp
 
 #C++
 rk_c.o: core/c/rk.cpp include/rk.h include/dataset.h include/fiber.h include/rk_c_kernel.h
-	g++ -c $(C_FLAGS) -I$(LIBRARIES_PATH) core/c/rk.cpp -o rk_c.o
+	g++ -c $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/c/rk.cpp -o rk_c.o
 	
 rk_kernel_c.o: core/c/rk_kernel.cpp include/rk_c_kernel.h include/dataset.h include/fiber.h
-	g++ -c  $(C_FLAGS) -I$(LIBRARIES_PATH) core/c/rk_kernel.cpp -o rk_kernel_c.o
+	g++ -c  $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/c/rk_kernel.cpp -o rk_kernel_c.o
 	
 #CUDA
 cuda: $(GENERAL_OBJECTS) rk_cuda.o rk_cuda_kernel.o

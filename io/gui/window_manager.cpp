@@ -57,7 +57,7 @@ void WindowManager::idle(){
   glutPostRedisplay(); 
 }
 
-void WindowManager::key_pressed (unsigned char key, int x, int y) {  
+void WindowManager::key_pressed (unsigned char key, int x, int y) {
   if(key == '+')
     _scene.decreaseScale();
   else if(key == '-')
