@@ -14,7 +14,8 @@ int main(int argc, char *argv[]){
   vector *v0;
   double h;
   Input file;
-  if(argc > 2 && strcmp(argv[1], "--analyze") != 0){
+  
+  if(argc <= 2 && strcmp(argv[1], "--analyze") != 0){
     file = Input(argv[1], Input::NATIVE_TYPE);
   }else{
     file = Input(argv[2], Input::ANALYZE_TYPE);
