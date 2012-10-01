@@ -14,14 +14,14 @@ int main(int argc, char *argv[]){
   vector *v0;
   double h;
   Input file;
-  
+
   if(argc <= 2 && strcmp(argv[1], "--analyze") != 0){
     file = Input(argv[1], Input::NATIVE_TYPE);
   }else{
     file = Input(argv[2], Input::ANALYZE_TYPE);
   }
   DataSet dataset = file.parse(&h, &v0, &v0_count);
-  
+
   RungeKutta rk = RungeKutta(dataset, v0, v0_count, h);
   Fiber *rk4_fibers = rk.order4();
   Fiber *rk2_fibers = rk.order2();
@@ -29,6 +29,6 @@ int main(int argc, char *argv[]){
   Output output = Output(dataset, v0_count, rk2_fibers, rk4_fibers);
   output.gnuplotInput();
   output.gui();
-  
+
   return 0;
 }

@@ -23,3 +23,5 @@ dhelix_vector.singlein
 gtest*
 tests_runner
 libgtest.a
+runge-kutta.sublime-project
+runge-kutta.sublime-workspace
