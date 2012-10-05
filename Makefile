@@ -2,12 +2,7 @@
 
 #vars
 CUDA_FLAGS=-arch sm_20
-
-#ifdef __APPLE__
-  OPENCL_FLAGS=-framework OpenCL
-#elif
-  OPENCL_FLAGS=-lOpenCL
-#end
+OPENCL_FLAGS=-lOpenCL
 C_FLAGS=-Wall -pedantic
 C_EXTRA_FLAGS=-Wextra
 C_ALL_FLAGS=$(C_FLAGS) $(C_EXTRA_FLAGS)
@@ -144,5 +139,5 @@ clean_tests:
 
 clean_library:
 	rm -f librk.a
-  
+
 clean: clean_compiling_results clean_others clean_plot clean_examples clean_library
