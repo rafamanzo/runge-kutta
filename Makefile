@@ -1,7 +1,13 @@
-.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda c gtest clean_library
+.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda opencl c gtest
 
 #vars
 CUDA_FLAGS=-arch sm_20
+
+#ifdef __APPLE__
+  OPENCL_FLAGS=-framework OpenCL
+#elif
+  OPENCL_FLAGS=-lOpenCL
+#end
 C_FLAGS=-Wall -pedantic
 C_EXTRA_FLAGS=-Wextra
 C_ALL_FLAGS=$(C_FLAGS) $(C_EXTRA_FLAGS)
@@ -67,6 +73,18 @@ rk_cuda_kernel.o: core/cuda/rk_kernel.cu include/rk_cuda_kernel.h include/datase
 
 rk_cuda.o: core/cuda/rk.cpp include/rk_cuda_kernel.h include/rk.h include/dataset.h include/fiber.h
 	nvcc -c -I$(LIBRARIES_PATH) core/cuda/rk.cpp -o rk_cuda.o $(CUDA_FLAGS)
+
+#OPENCL
+opencl: $(GENERAL_OBJECTS) rk_opencl.o opcl.o
+	g++ $(GENERAL_OBJECTS) rk_opencl.o opcl.o -o rk $(OPENCL_FLAGS) $(STATIC_LIBS)
+	
+opcl.o: core/opencl/opcl.cpp include/opcl.h include/dataset.h include/fiber.h
+	g++ -c  $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/opencl/opcl.cpp -o opcl.o
+
+rk_opencl.o: core/opencl/rk.cpp core/opencl/opcl.cpp include/rk_opencl_kernel.h include/opcl.h include/rk.h include/dataset.h include/fiber.h
+	g++ -c  $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/opencl/rk.cpp -o rk_opencl.o
+
+
 
 #TESTS
 gtest:
