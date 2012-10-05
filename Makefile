@@ -17,10 +17,6 @@ GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_mana
 
 LIBRARIES_PATH=include
 GTEST_PATH=gtest-1.6.0
-=======
-.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples clean_library examples cuda c
-COMPUTE_CAPABILITY=-arch sm_20
->>>>>>> ee7782476c036e231001888bf5cf6b69164ab229
 
 #default C++ version
 c: $(GENERAL_OBJECTS) rk_c.o rk_kernel_c.o
