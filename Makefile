@@ -17,6 +17,10 @@ GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_mana
 
 LIBRARIES_PATH=include
 GTEST_PATH=gtest-1.6.0
+=======
+.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples clean_library examples cuda c
+COMPUTE_CAPABILITY=-arch sm_20
+>>>>>>> ee7782476c036e231001888bf5cf6b69164ab229
 
 #default C++ version
 c: $(GENERAL_OBJECTS) rk_c.o rk_kernel_c.o
@@ -84,8 +88,6 @@ opcl.o: core/opencl/opcl.cpp include/opcl.h include/dataset.h include/fiber.h
 rk_opencl.o: core/opencl/rk.cpp core/opencl/opcl.cpp include/rk_opencl_kernel.h include/opcl.h include/rk.h include/dataset.h include/fiber.h
 	g++ -c  $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/opencl/rk.cpp -o rk_opencl.o
 
-
-
 #TESTS
 gtest:
 	wget http://googletest.googlecode.com/files/gtest-1.6.0.zip
@@ -129,3 +131,6 @@ clean_tests:
 	rm -rf gtest-1.6.0 
 	
 clean: clean_compiling_results clean_others clean_plot
+	rm -f rotationField randomField
+
+clean: clean_compiling_results clean_others clean_plot clean_examples

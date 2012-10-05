@@ -14,12 +14,3 @@ plot.dat
 rk2.dat
 rk4.dat
 rk2-vs-rk4.p
-dhelix.hdr
-dhelix.img
-dhelix_vector.hdr
-dhelix_vector.img
-dhelix_vector.in
-dhelix_vector.singlein
-gtest*
-tests_runner
-libgtest.a
