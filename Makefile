@@ -2,12 +2,7 @@
 
 #vars
 CUDA_FLAGS=-arch sm_20
-
-#ifdef __APPLE__
-  OPENCL_FLAGS=-framework OpenCL
-#elif
-  OPENCL_FLAGS=-lOpenCL
-#end
+OPENCL_FLAGS=-lOpenCL
 C_FLAGS=-Wall -pedantic
 C_EXTRA_FLAGS=-Wextra 
 C_ALL_FLAGS=$(C_FLAGS) $(C_EXTRA_FLAGS)
@@ -127,6 +122,3 @@ clean_tests:
 	rm -rf gtest-1.6.0 
 	
 clean: clean_compiling_results clean_others clean_plot
-	rm -f rotationField randomField
-
-clean: clean_compiling_results clean_others clean_plot clean_examples
