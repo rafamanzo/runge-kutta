@@ -188,7 +188,7 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
 
   finish = clock();
 
-  printf("CPU time for RK2: %fs\n", ((double) (finish - start))/CLOCKS_PER_SEC);
+  printf("CPU time for RK2: %fs\n", ((double) (finish - start))/((double) CLOCKS_PER_SEC));
 }
 
 void *rk4_kernel(void *args){
@@ -259,5 +259,5 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
 
   finish = clock();
 
-  printf("CPU time for RK4: %fs\n", ((double) (finish - start))/CLOCKS_PER_SEC);
+  printf("CPU time for RK4: %fs\n", ((double) (finish - start))/((double) CLOCKS_PER_SEC));
 }

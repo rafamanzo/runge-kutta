@@ -5,7 +5,7 @@ CUDA_FLAGS=-arch sm_20
 C_FLAGS=-Wall -pedantic
 C_EXTRA_FLAGS=-Wextra
 C_ALL_FLAGS=$(C_FLAGS) $(C_EXTRA_FLAGS)
-STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11 -g
+STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
 
 GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_manager.o scene.o cylinder_collection.o cone.o cone_collection.o
 
