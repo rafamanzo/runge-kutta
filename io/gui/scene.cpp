@@ -1,6 +1,10 @@
 #include<cstdlib>
 #include<cmath>
-#include<GL/glut.h>
+#ifdef __APPLE__
+#  include <GLUT/glut.h>
+#else
+#  include <GL/glut.h>
+#endif
 #include<dataset.h>
 #include<fiber.h>
 #include<cylinder.h>

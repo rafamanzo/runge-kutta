@@ -6,8 +6,14 @@
 /* http://lifeofaprogrammergeek.blogspot.com.br/2008/08/opengl-example-rendering-cylinders.html */
 /************************************************************************************************/
 
-#include<GL/glut.h>
-#include<GL/gl.h>
+#ifdef __APPLE__
+#  include <OpenGL/gl.h>
+#  include <GLUT/glut.h>
+#else
+#  include <GL/gl.h>
+#  include <GL/glut.h>
+#endif
+
 #include<cmath>
 #include<cstdio>
 #include<cylinder.h>

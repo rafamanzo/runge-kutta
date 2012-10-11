@@ -1,12 +1,19 @@
 .PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda opencl c gtest
 
 #vars
+SO = $(shell uname -s)
 CUDA_FLAGS=-arch sm_20
 OPENCL_FLAGS=-lOpenCL
 C_FLAGS=-Wall -pedantic
 C_EXTRA_FLAGS=-Wextra
-C_ALL_FLAGS=$(C_FLAGS) $(C_EXTRA_FLAGS)
-STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
+
+ifeq ($(SO),Darwin)
+  STATIC_LIBS=-framework Glut -framework OpenGL -lm -lpthread -L/usr/X11/lib -lX11
+  OPENCL_FLAGS=-framework OpenCL
+else
+  STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
+  OPENCL_FLAGS=-lOpenCL
+endif
 
 GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_manager.o scene.o cylinder_collection.o cone.o cone_collection.o
 
@@ -102,4 +109,4 @@ clean_tests:
 	rm -f libgtest.a gtest-1.6.0.zip
 	rm -rf gtest-1.6.0
 
-clean: clean_compiling_results clean_others clean_plot clean_library
+clean: clean_compiling_results clean_others clean_plot

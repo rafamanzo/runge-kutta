@@ -1,4 +1,8 @@
+#ifdef __APPLE__
+#  include <OpenCL/opencl.h>
+#else
 #include <CL/opencl.h>
+#endif
 
 #ifdef cl_khr_fp64
   #pragma OPENCL EXTENSION cl_khr_fp64 : enable

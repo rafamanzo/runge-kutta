@@ -1,6 +1,6 @@
 #include<cstdlib>
 #include<cstdio>
-#include<GL/glut.h>
+#include<GLUT/glut.h>
 #include<dataset.h>
 #include<fiber.h>
 #include<cylinder.h>
