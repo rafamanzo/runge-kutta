@@ -5,7 +5,7 @@
   #define TYPE double
   #pragma OPENCL EXTENSION cl_amd_fp64 : enable
 #else
-  #define TYPE TYPE
+  #define TYPE float
 #endif
 #define MAX_POINTS 10000
 
@@ -164,7 +164,7 @@ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_fiel
 /* Kernels */
 /***********/
 
-__kernel void rk2_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_y,int n_z, vector_field field,__global vector *points,__global int *n_points,unsigned long int max_points){
+__kernel void rk2_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_y,int n_z, vector_field field,__global vector *points,__global int *n_points, int max_points){
   vector k1, k2, initial, direction;
   int i, n_points_aux;
   
@@ -191,7 +191,7 @@ __kernel void rk2_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_
   n_points_aux = 0;
 }
 
-__kernel void rk4_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_y,int n_z, vector_field field,__global vector *points,__global int *n_points,unsigned long int max_points){
+__kernel void rk4_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_y,int n_z, vector_field field,__global vector *points,__global int *n_points, int max_points){
   vector k1, k2, k3, k4, initial, direction;
   int i, n_points_aux;
   

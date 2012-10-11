@@ -1,5 +1,5 @@
 #ifdef __APPLE__
-#  include <OpenCL/opencl.h>
+#include <OpenCL/opencl.h>
 #else
 #include <CL/opencl.h>
 #endif
@@ -35,8 +35,8 @@ namespace runge_kutta{
       void opencl_build_program();
       void opencl_create_program();
       void opencl_create_kernel(char* kernel_name);
-      void prepare_kernel(vector *v0, int count_v0, TYPE h, int n_x,int n_y,int n_z, vector_field field, vector *points, unsigned long int max_points);
-      void opencl_run_kernel(vector *points, int *n_points, unsigned long int max_points);
+      void prepare_kernel(vector *v0, int count_v0, TYPE h, int n_x,int n_y,int n_z, vector_field field, vector *points,int max_points);
+      void opencl_run_kernel(vector *points, int *n_points, int max_points);
       void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, runge_kutta::Fiber **fibers);
     public:
       RK_OpenCL();
