@@ -15,16 +15,16 @@ RungeKutta::RungeKutta(DataSet dataset, vector *v0, unsigned count_v0, double h)
 
 Fiber *RungeKutta::order2(){
   Fiber *fibers;
-  
+
   rk2_caller(_v0, _count_v0, _h, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field(), &fibers);
-  
+
   return fibers;
 }
 
 Fiber *RungeKutta::order4(){
   Fiber *fibers;
-     
+
   rk4_caller(_v0, _count_v0, _h, _dataset.n_x(), _dataset.n_y(), _dataset.n_z(), _dataset.field(), &fibers);
-  
+
   return fibers;
 }
