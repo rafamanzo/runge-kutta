@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <dataset.h>
 #include <fiber.h>
@@ -110,7 +111,7 @@ void RK_OpenCL::opencl_create_kernel(char* kernel_name){
   }
 }
 
-void RK_OpenCL::prepare_kernel(vector *v0, int count_v0, TYPE h, int n_x,int n_y,int n_z, vector_field field, vector *points, unsigned int max_points){
+void RK_OpenCL::prepare_kernel(vector *v0, int count_v0, TYPE h, int n_x,int n_y,int n_z, vector_field field, vector *points, unsigned long int max_points){
   cl_mem opencl_count_v0, opencl_h, opencl_n_x, opencl_n_y, opencl_n_z, opencl_max_points;
 
   /* Criação dos buffers que o OpenCL vai usar. */
@@ -123,7 +124,7 @@ void RK_OpenCL::prepare_kernel(vector *v0, int count_v0, TYPE h, int n_x,int n_y
   _opencl_field = clCreateBuffer(_context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(field)*n_x*n_y*n_z, field, NULL);
   _opencl_points = clCreateBuffer(_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(vector)*count_v0*max_points, points, NULL);
   _opencl_n_points = clCreateBuffer(_context, CL_MEM_READ_ONLY, sizeof(int)*count_v0, NULL,NULL);
-  opencl_max_points = clCreateBuffer(_context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(unsigned int), (&max_points), NULL);
+  opencl_max_points = clCreateBuffer(_context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(unsigned long int), (&max_points), NULL);
 
   clSetKernelArg(_kernel, 0, sizeof(cl_mem), (void *)&_opencl_v0);
   clSetKernelArg(_kernel, 1, sizeof(cl_mem), (void *)&opencl_count_v0);
@@ -139,7 +140,7 @@ void RK_OpenCL::prepare_kernel(vector *v0, int count_v0, TYPE h, int n_x,int n_y
   clFinish(_queue);
 }
 
-void RK_OpenCL::opencl_run_kernel(vector *points, int *n_points, unsigned int max_points){
+void RK_OpenCL::opencl_run_kernel(vector *points, int *n_points, unsigned long int max_points){
   size_t work_dim[1];
   
   work_dim[0] = max_points;
@@ -158,7 +159,8 @@ void RK_OpenCL::opencl_run_kernel(vector *points, int *n_points, unsigned int ma
 }
 
 void RK_OpenCL::opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, runge_kutta::Fiber **fibers){
-  unsigned int num_platforms, num_devices, max_points, available;
+  unsigned int num_platforms, num_devices;
+  unsigned long int max_points, available;
   vector *points;
   int *n_points, i, j; 
 
@@ -190,7 +192,7 @@ void RK_OpenCL::opencl_init(char* kernel_name, vector *v0, int count_v0, double 
   n_points = (int*) malloc(count_v0*sizeof(int));
   clGetDeviceInfo(*_devices,CL_DEVICE_GLOBAL_MEM_SIZE,sizeof(available),&available,NULL);
   max_points = available*0.9/(sizeof(vector)*count_v0);
-  printf("MAX_POINTS = %d\n", max_points);
+  printf("MAX_POINTS = %lu\n", max_points);
   points = (vector*) malloc(count_v0*max_points*sizeof(vector));
   printf(" OK.\n");
 

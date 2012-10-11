@@ -7,6 +7,7 @@
 #else
   #define TYPE TYPE
 #endif
+#define MAX_POINTS 10000
 
 typedef struct vec{
   TYPE x;
@@ -163,7 +164,7 @@ vector trilinear_interpolation(vector v0, int n_x, int n_y, int n_z, vector_fiel
 /* Kernels */
 /***********/
 
-__kernel void rk2_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_y,int n_z, vector_field field,__global vector *points,__global int *n_points,unsigned int max_points){
+__kernel void rk2_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_y,int n_z, vector_field field,__global vector *points,__global int *n_points,unsigned long int max_points){
   vector k1, k2, initial, direction;
   int i, n_points_aux;
   
@@ -174,7 +175,7 @@ __kernel void rk2_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_
   set( &initial, v0[i] );
   set( &direction, field[opencl_offset(n_x, n_y, initial.x, initial.y, initial.z)] );
   
-  while(module(direction) > 0.0 && (n_points_aux < max_points && n_points_aux < 27/*MAX_POINTS*/)){
+  while(module(direction) > 0.0 && (n_points_aux < max_points && n_points_aux < MAX_POINTS)){
     n_points_aux++;
         
     points[opencl_offset(count_v0, 0, i, n_points_aux - 1, 0)] = initial;
@@ -188,4 +189,32 @@ __kernel void rk2_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_
   
   n_points[i] = n_points_aux;
   n_points_aux = 0;
+}
+
+__kernel void rk4_kernel(__global vector *v0, int count_v0,TYPE h,int n_x,int n_y,int n_z, vector_field field,__global vector *points,__global int *n_points,unsigned long int max_points){
+  vector k1, k2, k3, k4, initial, direction;
+  int i, n_points_aux;
+  
+  n_points_aux = 0;
+  
+  i = get_global_id(0);
+  
+  set( &initial, v0[i] );
+  set( &direction, field[opencl_offset(n_x, n_y, initial.x, initial.y, initial.z)] );
+  
+  while(module(direction) > 0.0 && (n_points_aux < max_points && n_points_aux < MAX_POINTS)){
+    n_points_aux++;
+        
+    points[opencl_offset(count_v0, 0, i, n_points_aux - 1, 0)] = initial;
+  
+    set( &k1, mult_scalar( direction, h ) );
+    set( &k2, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k1, 0.5 )), n_x, n_y, n_z, field), h) ); 
+    set( &k3, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k2, 0.5 )), n_x, n_y, n_z, field), h) );
+    set( &k4, mult_scalar( trilinear_interpolation(sum(initial, k3), n_x, n_y, n_z, field), h) );
+    
+    set( &initial, sum( initial, sum( mult_scalar( k1 , 0.166666667 ), sum( mult_scalar( k2, 0.333333333 ), sum( mult_scalar( k3, 0.333333333 ), mult_scalar( k4, 0.166666667 ) ) ) ) ) );
+    set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
+  }
+  
+  n_points[i] = n_points_aux;
 }
