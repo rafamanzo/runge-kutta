@@ -147,9 +147,9 @@ void *rk2_kernel(void *args){
     set( &direction, trilinear_interpolation(initial, arguments.n_x, arguments.n_y, arguments.n_z, arguments.field) );
   }
 
-  (*(arguments.fibers))[arguments.id] = Fiber(n_points_aux);
+  (arguments.fibers)[arguments.id] = Fiber(n_points_aux);
   for(j = 0; j < n_points_aux; j++)
-    (*(arguments.fibers))[arguments.id].setPoint(j, points_aux[j]);
+    (arguments.fibers)[arguments.id].setPoint(j, points_aux[j]);
 
   return NULL;
 }
@@ -158,14 +158,13 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   int i;
   clock_t start, finish;
   kernel_args *arguments;
-  pthread_t *threads, *threads_backup;
+  pthread_t *threads;
 
   start = clock();
 
-  *fibers = (Fiber *) malloc(count_v0*sizeof(Fiber *));
+  *fibers = (Fiber *) malloc(count_v0*sizeof(Fiber));
 
   threads = (pthread_t *) malloc(count_v0*sizeof(pthread_t));
-  threads_backup = (pthread_t *) malloc(count_v0*sizeof(pthread_t));
   arguments = (kernel_args *) malloc(count_v0*sizeof(kernel_args));
   for(i = 0; i < count_v0; i++){
     arguments[i].id = i;
@@ -176,15 +175,14 @@ void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
     arguments[i].n_y = n_y;
     arguments[i].n_z = n_z;
     arguments[i].field = field;
-    arguments[i].fibers = fibers;
+    arguments[i].fibers = *fibers;
 
     pthread_create(&(threads[i]), NULL, rk2_kernel, (void *) ( &(arguments[i]) ) );
-
-    threads_backup[i] = threads[i];
   }
 
   for(i = 0; i < count_v0; i++)
-    pthread_join(threads_backup[i], NULL);
+    pthread_join(threads[i], NULL);
+  
 
   finish = clock();
 
@@ -218,9 +216,9 @@ void *rk4_kernel(void *args){
     set( &direction, trilinear_interpolation(initial, arguments.n_x, arguments.n_y, arguments.n_z, arguments.field) );
   }
 
-  (*(arguments.fibers))[arguments.id] = Fiber(n_points_aux);
+  (arguments.fibers)[arguments.id] = Fiber(n_points_aux);
   for(j = 0; j < n_points_aux; j++)
-    (*(arguments.fibers))[arguments.id].setPoint(j, points_aux[j]);
+    (arguments.fibers)[arguments.id].setPoint(j, points_aux[j]);
 
   return NULL;
 }
@@ -229,14 +227,13 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
   int i;
   clock_t start, finish;
   kernel_args *arguments;
-  pthread_t *threads, *threads_backup;
+  pthread_t *threads;
 
   start = clock();
 
-  *fibers = (Fiber *) malloc(count_v0*sizeof(Fiber *));
+  *fibers = (Fiber *) malloc(count_v0*sizeof(Fiber));
 
   threads = (pthread_t *) malloc(count_v0*sizeof(pthread_t));
-  threads_backup = (pthread_t *) malloc(count_v0*sizeof(pthread_t));
   arguments = (kernel_args *) malloc(count_v0*sizeof(kernel_args));
   for(i = 0; i < count_v0; i++){
     arguments[i].id = i;
@@ -247,15 +244,13 @@ void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, v
     arguments[i].n_y = n_y;
     arguments[i].n_z = n_z;
     arguments[i].field = field;
-    arguments[i].fibers = fibers;
+    arguments[i].fibers = *fibers;
 
     pthread_create(&(threads[i]), NULL, rk4_kernel, (void *) ( &(arguments[i]) ) );
-
-    threads_backup[i] = threads[i];
   }
 
   for(i = 0; i < count_v0; i++)
-    pthread_join(threads_backup[i], NULL);
+    pthread_join(threads[i], NULL);
 
   finish = clock();
 
