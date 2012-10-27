@@ -140,19 +140,20 @@ void RK_OpenCL::prepare_kernel(vector *v0, int count_v0, TYPE h, int n_x,int n_y
   clFinish(_queue);
 }
 
-void RK_OpenCL::opencl_run_kernel(vector *points, int *n_points, int max_points){
+void RK_OpenCL::opencl_run_kernel(vector *points, int *n_points, int max_points, int count_v0){
   size_t work_dim[1];
   
   work_dim[0] = max_points;
   clEnqueueNDRangeKernel(_queue, _kernel, 1, NULL, work_dim, NULL, 0, NULL, &_event);
   clReleaseEvent(_event);
   clFinish(_queue);
-  if( clEnqueueReadBuffer(_queue, _opencl_n_points, CL_TRUE, 0, sizeof(TYPE)*max_points, n_points, 0, NULL, &_event) == CL_INVALID_VALUE ){
-    printf("\nERROR: Failed to read buffer.\n");
+
+  if( clEnqueueReadBuffer(_queue, _opencl_n_points, CL_TRUE, 0, sizeof(TYPE)*count_v0, n_points, 0, NULL, &_event) == CL_INVALID_VALUE ){
+    printf("\nERROR: Failed to read buffer \"n_points\".\n");
     exit(-1);
   }
   if( clEnqueueReadBuffer(_queue, _opencl_points, CL_TRUE, 0, sizeof(TYPE)*max_points, points, 0, NULL, &_event) == CL_INVALID_VALUE ){
-    printf("\nERROR: Failed to read buffer.\n");
+    printf("\nERROR: Failed to read buffer \"points\".\n");
     exit(-1);
   }
   clReleaseEvent(_event);
@@ -191,8 +192,7 @@ void RK_OpenCL::opencl_init(char* kernel_name, vector *v0, int count_v0, double 
   printf("Memory allocation...");
   n_points = (int*) malloc(count_v0*sizeof(int));
   clGetDeviceInfo(*_devices,CL_DEVICE_GLOBAL_MEM_SIZE,sizeof(available),&available,NULL);
-  max_points = available*0.9/(sizeof(vector)*count_v0);
-  printf("MAX_POINTS = %d\n", max_points);
+  max_points = (available*0.9)/(sizeof(vector)*count_v0);
   points = (vector*) malloc(count_v0*max_points*sizeof(vector));
   printf(" OK.\n");
 
@@ -201,7 +201,7 @@ void RK_OpenCL::opencl_init(char* kernel_name, vector *v0, int count_v0, double 
   printf(" OK.\n");
 
   printf("Running the kernel...");
-  opencl_run_kernel(points,n_points,max_points);
+  opencl_run_kernel(points,n_points,max_points,count_v0);
   printf(" OK.\n");fflush(NULL);
 
   printf("Coping the result...");
