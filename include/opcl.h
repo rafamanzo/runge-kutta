@@ -11,7 +11,7 @@
   #define TYPE double
   #pragma OPENCL EXTENSION cl_amd_fp64 : enable
 #else
-  #define TYPE float
+  #define TYPE double
 #endif
 
 namespace runge_kutta{
@@ -35,10 +35,12 @@ namespace runge_kutta{
       void opencl_build_program();
       void opencl_create_program();
       void opencl_create_kernel(char* kernel_name);
-      void prepare_kernel(vector *v0, unsigned int count_v0, float h, int n_x,int n_y,int n_z, vector_field field, unsigned int max_points);
+      void prepare_kernel(vector *v0, unsigned int count_v0, double h, int n_x,int n_y,int n_z, vector_field field, unsigned int max_points);
       void opencl_run_kernel(unsigned int count_v0, unsigned int max_points, runge_kutta::Fiber **fibers);
+      void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers);
     public:
       RK_OpenCL();
-      void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers);
+      void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers);
+      void rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers);
   };
 }

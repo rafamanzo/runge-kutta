@@ -1,9 +1,10 @@
 #define MAX_POINTS 10000
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 typedef struct vec{
-  float x;
-  float y;
-  float z;
+  double x;
+  double y;
+  double z;
 } vector;
 
 typedef vector* vector_field;
@@ -12,7 +13,7 @@ unsigned int opencl_offset(int n_x, int n_y, unsigned int x, unsigned int y, uns
   return x + n_x*y + n_y*n_x*z;
 }
 
-vector mult_scalar(vector v, float scalar){
+vector mult_scalar(vector v, double scalar){
   vector mult;
   
   mult.x = v.x*scalar;
@@ -42,7 +43,7 @@ vector subtract(vector v1, vector v2){
   return subtraction;
 }
 
-float module(vector v){
+double module(vector v){
   return sqrt(pow(v.x, 2) + pow(v.y, 2) + pow(v.z, 2));
 }
 
@@ -60,19 +61,19 @@ vector nearest_neighbour(vector v0, __global int* n_x,__global int* n_y,__global
   int x, y, z;
   vector zero;
   
-  zero.x = zero.y = zero.z = 0.0f;
+  zero.x = zero.y = zero.z = 0.0;
   
-  if( (v0.x - floor(v0.x)) > 0.5f && v0.x < (*n_x - 1))
+  if( (v0.x - floor(v0.x)) > 0.5 && v0.x < (*n_x - 1))
     x = (int) ceil(v0.x);
   else
     x = (int) floor(v0.x);
     
-  if( (v0.y - floor(v0.y)) > 0.5f && v0.y < (*n_y - 1))
+  if( (v0.y - floor(v0.y)) > 0.5 && v0.y < (*n_y - 1))
     y = (int) ceil(v0.y);
   else
     y = (int) floor(v0.y);
     
-  if( (v0.z - floor(v0.z)) > 0.5f && v0.z < (*n_z - 1))
+  if( (v0.z - floor(v0.z)) > 0.5 && v0.z < (*n_z - 1))
     z = (int) ceil(v0.z);
   else
     z = (int) floor(v0.z);
@@ -129,7 +130,7 @@ vector trilinear_interpolation(vector v0, __global int* n_x,__global int* n_y,__
 /* Kernels */
 /***********/
 
-__kernel void rk2_kernel(__global vector *v0, __global unsigned int* count_v0,__global float* h,__global int* n_x,__global int* n_y,__global int* n_z, __global vector* field,__global vector *points,__global unsigned int *n_points, __global unsigned int* max_points){
+__kernel void rk2_kernel(__global vector *v0, __global unsigned int* count_v0,__global double* h,__global int* n_x,__global int* n_y,__global int* n_z, __global vector* field,__global vector *points,__global unsigned int *n_points, __global unsigned int* max_points){
   vector k1, k2, initial, direction;
   int i, n_points_aux;
   
@@ -146,7 +147,7 @@ __kernel void rk2_kernel(__global vector *v0, __global unsigned int* count_v0,__
     set((vector*) &(points[opencl_offset((*count_v0), 0, i, n_points_aux - 1, 0)]), initial );
   
     set( &k1, mult_scalar( direction, *h ) );
-    set( &k2, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k1, 0.5f )), n_x, n_y, n_z, field), *h) ); 
+    set( &k2, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k1, 0.5 )), n_x, n_y, n_z, field), *h) ); 
     
     set( &initial, sum( initial, k2) );
     set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
@@ -156,7 +157,7 @@ __kernel void rk2_kernel(__global vector *v0, __global unsigned int* count_v0,__
   n_points_aux = 0;
 }
 
-__kernel void rk4_kernel(__global vector *v0, __global unsigned int* count_v0,__global float* h,__global int* n_x,__global int* n_y,__global int* n_z, __global vector* field,__global vector *points,__global unsigned int *n_points, __global unsigned int* max_points){
+__kernel void rk4_kernel(__global vector *v0, __global unsigned int* count_v0,__global double* h,__global int* n_x,__global int* n_y,__global int* n_z, __global vector* field,__global vector *points,__global unsigned int *n_points, __global unsigned int* max_points){
   vector k1, k2, k3, k4, initial, direction;
   unsigned int i, n_points_aux;
   
@@ -164,24 +165,20 @@ __kernel void rk4_kernel(__global vector *v0, __global unsigned int* count_v0,__
 
   i = get_global_id(0);
 
-  printf("v0 = %p\n",  v0);
-  printf("v0[%u] = %f %f %f\n", i, v0[i].x,v0[i].y,v0[i].z);
-//printf("field[%u] = %f %f %f\n", i, field[i].x,field[i].y,field[i].z);
-
   set( &initial, v0[i] );
   set( &direction, field[opencl_offset(*n_x, *n_y,(unsigned int) initial.x,(unsigned int) initial.y,(unsigned int) initial.z)] );
   
-  while(module(direction) > 0.0f && (n_points_aux < (*max_points) && n_points_aux < MAX_POINTS)){
+  while(module(direction) > 0.0 && (n_points_aux < (*max_points) && n_points_aux < MAX_POINTS)){
     n_points_aux++;
 
     set( (vector*) &points[opencl_offset((*count_v0), 0, i, n_points_aux - 1, 0)], initial ); 
          
     set( &k1, mult_scalar( direction, *h ) );
-    set( &k2, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k1, 0.5f )), n_x, n_y, n_z, field), *h) ); 
-    set( &k3, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k2, 0.5f )), n_x, n_y, n_z, field), *h) );
+    set( &k2, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k1, 0.5 )), n_x, n_y, n_z, field), *h) ); 
+    set( &k3, mult_scalar( trilinear_interpolation(sum(initial, mult_scalar( k2, 0.5 )), n_x, n_y, n_z, field), *h) );
     set( &k4, mult_scalar( trilinear_interpolation(sum(initial, k3), n_x, n_y, n_z, field), *h) );
     
-    set( &initial, sum( initial, sum( mult_scalar( k1 , 0.166666667f ), sum( mult_scalar( k2, 0.333333333f ), sum( mult_scalar( k3, 0.333333333f ), mult_scalar( k4, 0.166666667f ) ) ) ) ) );
+    set( &initial, sum( initial, sum( mult_scalar( k1 , 0.166666667 ), sum( mult_scalar( k2, 0.333333333 ), sum( mult_scalar( k3, 0.333333333 ), mult_scalar( k4, 0.166666667 ) ) ) ) ) );
     set( &direction, trilinear_interpolation(initial, n_x, n_y, n_z, field) );
   }
   

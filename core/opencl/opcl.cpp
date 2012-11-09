@@ -127,13 +127,11 @@ void RK_OpenCL::opencl_create_kernel(char* kernel_name){
   }
 }
 
-void RK_OpenCL::prepare_kernel(vector *v0, unsigned int count_v0, float h, int n_x,int n_y,int n_z, vector_field field, unsigned int max_points){
-  
- int i;
+void RK_OpenCL::prepare_kernel(vector *v0, unsigned int count_v0, double h, int n_x,int n_y,int n_z, vector_field field, unsigned int max_points){
   
   _opencl_v0 = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*(count_v0), v0, NULL);
   _opencl_count_v0 = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), &count_v0, NULL);
-  _opencl_h = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float), &h, NULL);
+  _opencl_h = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(double), &h, NULL);
   _opencl_n_x = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), &n_x, NULL);
   _opencl_n_y = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), &n_y, NULL);
   _opencl_n_z = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), &n_z, NULL);  
@@ -154,23 +152,15 @@ void RK_OpenCL::prepare_kernel(vector *v0, unsigned int count_v0, float h, int n
   clSetKernelArg(_kernel, 9, sizeof(cl_mem), (void *)&_opencl_max_points);
 
   clFinish(_queue);
-  
-  for(i =0; i < count_v0; i++)
-   printf("v0[%u] = %f %f %f\n", i, v0[i].x,v0[i].y,v0[i].z);
-   
-   printf("opencl_v0 %p %p\n\n", _opencl_v0, (void *)&_opencl_v0);
-  
-  
 }
 
 void RK_OpenCL::opencl_run_kernel(unsigned int count_v0, unsigned int max_points, Fiber **fibers){
   size_t work_dim[1];
   unsigned int i, j, *n_points;
-  vector *points, *v;
+  vector *points;
   
   n_points = (unsigned int*) malloc(count_v0*sizeof(unsigned int));
   points = (vector*) malloc(count_v0*max_points*sizeof(vector));
-  v = (vector*) malloc(count_v0*sizeof(vector));
   
   work_dim[0] = count_v0;
   clEnqueueNDRangeKernel(_queue, _kernel, 1, NULL, work_dim, NULL, 0, NULL, &_event);
@@ -178,11 +168,6 @@ void RK_OpenCL::opencl_run_kernel(unsigned int count_v0, unsigned int max_points
   clReleaseEvent(_event);
   clFinish(_queue);
 
-  if( clEnqueueReadBuffer(_queue, _opencl_v0, CL_TRUE, 0, sizeof(vector)*count_v0, v, 0, NULL, &_event) == CL_INVALID_VALUE ){
-    printf("\nERROR: Failed to read buffer \"v\".\n");
-    exit(-1);
-  }
-  
   if( clEnqueueReadBuffer(_queue, _opencl_n_points, CL_TRUE, 0, sizeof(unsigned int)*count_v0, n_points, 0, NULL, &_event) == CL_INVALID_VALUE ){
     printf("\nERROR: Failed to read buffer \"n_points\".\n");
     exit(-1);
@@ -197,17 +182,6 @@ void RK_OpenCL::opencl_run_kernel(unsigned int count_v0, unsigned int max_points
   /*profile_event(&event);*/
   clReleaseEvent(_event);
 
-  for(i =0; i < count_v0; i++)
-   printf("v[%u] = %f %f %f\n", i, v[i].x,v[i].y,v[i].z);
-
-
-  /*for(i = 0; i < count_v0; i++){
-    for(j = 0; j < n_points[i]; j++){
-     printf("%f %f %f\n", points[(i+7*j)].x,points[(i+7*j)].y,points[(i+7*j)].z);
-    }
-    printf("\n");
-  }*/
-   
   *fibers = (runge_kutta::Fiber *) malloc(count_v0*sizeof(runge_kutta::Fiber));
   for(i = 0; i < count_v0; i++){
     (*fibers)[i] = runge_kutta::Fiber(n_points[i]);
@@ -238,4 +212,12 @@ void RK_OpenCL::opencl_init(char* kernel_name, vector *v0, int count_v0, double 
   
   prepare_kernel(v0, count_v0, h, n_x, n_y, n_z, field, max_points);
   opencl_run_kernel(count_v0, max_points, fibers);
+}
+
+void RK_OpenCL::rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers){
+  opencl_init((char*)"rk2_kernel",v0, count_v0, h, n_x, n_y, n_z, field, fibers);
+}
+
+void RK_OpenCL::rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers){
+  opencl_init((char*)"rk4_kernel",v0, count_v0, h, n_x, n_y, n_z, field, fibers);
 }
