@@ -1,11 +1,19 @@
-.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda c gtest
+.PHONY: clean clean_compiling_results clean_others clean_plot clean_examples examples cuda opencl c gtest
 
 #vars
+SO = $(shell uname -s)
 CUDA_FLAGS=-arch sm_20
+OPENCL_FLAGS=-lOpenCL
 C_FLAGS=-Wall -pedantic
 C_EXTRA_FLAGS=-Wextra
-C_ALL_FLAGS=$(C_FLAGS) $(C_EXTRA_FLAGS)
-STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
+
+ifeq ($(SO),Darwin)
+  STATIC_LIBS=-framework Glut -framework OpenGL -lm -lpthread -L/usr/X11/lib -lX11
+  OPENCL_FLAGS=-framework OpenCL
+else
+  STATIC_LIBS=-lglut -lGL -lGLU -lm -lpthread -lX11
+  OPENCL_FLAGS=-lOpenCL
+endif
 
 GENERAL_OBJECTS=main.o input.o dataset.o fiber.o output.o cylinder.o window_manager.o scene.o cylinder_collection.o cone.o cone_collection.o
 
@@ -68,24 +76,15 @@ rk_cuda_kernel.o: core/cuda/rk_kernel.cu include/rk_cuda_kernel.h include/datase
 rk_cuda.o: core/cuda/rk.cpp include/rk_cuda_kernel.h include/rk.h include/dataset.h include/fiber.h
 	nvcc -c -I$(LIBRARIES_PATH) core/cuda/rk.cpp -o rk_cuda.o $(CUDA_FLAGS)
 
-#TESTS
-gtest:
-	wget http://googletest.googlecode.com/files/gtest-1.6.0.zip
-	unzip gtest-1.6.0.zip
-	g++ -I$(GTEST_PATH)/include -I$(GTEST_PATH) -c $(GTEST_PATH)/src/gtest-all.cc
-	ar -rv libgtest.a gtest-all.o
+#OPENCL
+opencl: $(GENERAL_OBJECTS) rk_opencl.o opcl.o
+	g++ $(GENERAL_OBJECTS) rk_opencl.o opcl.o -o rk $(OPENCL_FLAGS) $(STATIC_LIBS)
+	
+opcl.o: core/opencl/opcl.cpp include/opcl.h include/dataset.h include/fiber.h
+	g++ -c  $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/opencl/opcl.cpp -o opcl.o
 
-tests_runner: tests_main.o rk_kernel_fixture.o rk_kernel_tests.o dataset.o fiber.o rk_kernel_c.o
-	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) tests_main.o rk_kernel_fixture.o rk_kernel_tests.o rk_kernel_c.o dataset.o fiber.o libgtest.a -lpthread -o tests_runner
-
-tests_main.o: tests/main.cpp
-	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/main.cpp -o tests_main.o
-
-rk_kernel_fixture.o: include/dataset.h tests/fixtures/rk_kernel_fixture.cpp tests/include/rk_kernel_fixture.h
-	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/fixtures/rk_kernel_fixture.cpp
-
-rk_kernel_tests.o: tests/units/rk_kernel_tests.cpp tests/fixtures/rk_kernel_fixture.cpp include/dataset.h include/fiber.h include/rk_c_kernel.h
-	g++ -I$(GTEST_PATH)/include -Itests/include -I$(LIBRARIES_PATH) -c tests/units/rk_kernel_tests.cpp
+rk_opencl.o: core/opencl/rk.cpp core/opencl/opcl.cpp include/rk_opencl_kernel.h include/opcl.h include/rk.h include/dataset.h include/fiber.h
+	g++ -c  $(C_ALL_FLAGS) -I$(LIBRARIES_PATH) core/opencl/rk.cpp -o rk_opencl.o
 
 #OTHER
 examples:
