@@ -7,20 +7,8 @@ using namespace runge_kutta;
 
 RK_OpenCL::RK_OpenCL(){
   _device_used = 0;
+  _time = 0.0;
 }
-
-cl_platform_id _platform;
-cl_context _context;
-cl_device_id* _devices;
-cl_command_queue _queue;
-cl_kernel _kernel;
-cl_program _program;
-cl_event _event;
-cl_mem _opencl_points, _opencl_n_points;
-/*(cl_ulong start, finish;
-double total = 0;*/
-unsigned int _devices_found;
-unsigned int _device_used = 0;
 
 void RK_OpenCL::opencl_create_platform(unsigned int num_platforms){
   cl_uint num_platforms_found;
@@ -57,7 +45,7 @@ void RK_OpenCL::opencl_create_queue(){
   }
 }
 
-char* RK_OpenCL::load_program_from_source(int *size) {
+char* RK_OpenCL::opencl_load_program_from_source(int *size) {
   char* program_string;
   FILE* prog;
 
@@ -92,22 +80,13 @@ void RK_OpenCL::opencl_build_program(){
   }
 }
 
-/*void profile_event (cl_event* profiler) {
-  cl_ulong start, finish;
-    
-  clWaitForEvents(1, &event);
-  if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, (size_t)sizeof(cl_ulong), &start, NULL) != CL_SUCCESS) printf("Erro!\n");
-  if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, (size_t)sizeof(cl_ulong), &finish, NULL) != CL_SUCCESS) printf("Erro!\n");
-  total += (double)(finish-start);
-}*/
-
 void RK_OpenCL::opencl_create_program(){
   char* program_source;
   int size;
   size_t prog_size;
   cl_int err;
 
-  program_source = load_program_from_source(&size);
+  program_source = opencl_load_program_from_source(&size);
   prog_size = (size_t)size;
   _program = clCreateProgramWithSource(_context, 1, (const char**)&program_source, &prog_size, &err);
 
@@ -127,7 +106,7 @@ void RK_OpenCL::opencl_create_kernel(char* kernel_name){
   }
 }
 
-void RK_OpenCL::prepare_kernel(vector *v0, unsigned int count_v0, double h, int n_x,int n_y,int n_z, vector_field field, unsigned int max_points){
+void RK_OpenCL::opencl_prepare_kernel(vector *v0, unsigned int count_v0, double h, int n_x,int n_y,int n_z, vector_field field, unsigned int max_points){
   
   _opencl_v0 = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(vector)*(count_v0), v0, NULL);
   _opencl_count_v0 = clCreateBuffer(_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), &count_v0, NULL);
@@ -164,22 +143,22 @@ void RK_OpenCL::opencl_run_kernel(unsigned int count_v0, unsigned int max_points
   
   work_dim[0] = count_v0;
   clEnqueueNDRangeKernel(_queue, _kernel, 1, NULL, work_dim, NULL, 0, NULL, &_event);
-  /*profile_event(&event);*/
+  opencl_time(&_event);
   clReleaseEvent(_event);
   clFinish(_queue);
 
   if( clEnqueueReadBuffer(_queue, _opencl_n_points, CL_TRUE, 0, sizeof(unsigned int)*count_v0, n_points, 0, NULL, &_event) == CL_INVALID_VALUE ){
     printf("\nERROR: Failed to read buffer \"n_points\".\n");
     exit(-1);
-  }
-  
-  /*profile_event(&event);*/
+  }  
+  opencl_time(&_event);
   clReleaseEvent(_event);
+  
   if( clEnqueueReadBuffer(_queue, _opencl_points, CL_TRUE, 0, sizeof(vector)*count_v0*max_points, points, 0, NULL, &_event) == CL_INVALID_VALUE ){
     printf("\nERROR: Failed to read buffer \"points\".\n");
     exit(-1);
   }
-  /*profile_event(&event);*/
+  opencl_time(&_event);
   clReleaseEvent(_event);
 
   *fibers = (runge_kutta::Fiber *) malloc(count_v0*sizeof(runge_kutta::Fiber));
@@ -192,12 +171,26 @@ void RK_OpenCL::opencl_run_kernel(unsigned int count_v0, unsigned int max_points
 
   free(n_points);
   free(points);   
+}
+
+void RK_OpenCL::opencl_time(cl_event* timer){
+  cl_ulong _start, _finish;
   
-  /*printf("%lf\n", total*NANO);*/
+  clWaitForEvents(1, &_event);
+  
+  if (clGetEventProfilingInfo(_event, CL_PROFILING_COMMAND_START, (size_t)sizeof(cl_ulong), &_start, NULL) != CL_SUCCESS)
+    printf("\nERROR: Failed to get profiling info.\n");
+    
+  if (clGetEventProfilingInfo(_event, CL_PROFILING_COMMAND_END, (size_t)sizeof(cl_ulong), &_finish, NULL) != CL_SUCCESS)
+    printf("\nERROR: Failed to get profiling info.\n");
+    
+  _time += (double)(_finish-_start);
 }
 
 void RK_OpenCL::opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers){
-  unsigned int max_points, available;
+  unsigned int max_points;
+
+  max_points = 10000;
 
   opencl_create_platform(2);
   opencl_get_devices_id();
@@ -205,19 +198,16 @@ void RK_OpenCL::opencl_init(char* kernel_name, vector *v0, int count_v0, double 
   opencl_create_queue();
   opencl_create_program();
   opencl_create_kernel(kernel_name);
-
-  /*clGetDeviceInfo(*_devices,CL_DEVICE_GLOBAL_MEM_SIZE,sizeof(available),&available,NULL);
-  max_points = (available*0.9)/(sizeof(vector)*count_v0);*/
-  max_points = 10000;
-  
-  prepare_kernel(v0, count_v0, h, n_x, n_y, n_z, field, max_points);
+  opencl_prepare_kernel(v0, count_v0, h, n_x, n_y, n_z, field, max_points);
   opencl_run_kernel(count_v0, max_points, fibers);
 }
 
 void RK_OpenCL::rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers){
   opencl_init((char*)"rk2_kernel",v0, count_v0, h, n_x, n_y, n_z, field, fibers);
+  printf("CPU/GPU time for RK2: %fs\n", _time*1.0e-9);
 }
 
 void RK_OpenCL::rk4_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers){
   opencl_init((char*)"rk4_kernel",v0, count_v0, h, n_x, n_y, n_z, field, fibers);
+  printf("CPU/GPU time for RK4: %fs\n", _time*1.0e-9);
 }

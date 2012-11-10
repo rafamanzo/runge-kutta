@@ -24,20 +24,22 @@ namespace runge_kutta{
       cl_kernel _kernel;
       cl_program _program;
       cl_event _event;
-      cl_mem _opencl_points, _opencl_n_points, _opencl_v0, _opencl_count_v0, _opencl_h, _opencl_n_x, _opencl_n_y, _opencl_n_z, _opencl_max_points, _opencl_field;
+      cl_mem _opencl_points, _opencl_n_points, _opencl_v0, _opencl_count_v0, _opencl_h, _opencl_n_x, _opencl_n_y, _opencl_n_z,_opencl_max_points, _opencl_field;
+      double _time;       
       unsigned int _devices_found;
       unsigned int _device_used;
       void opencl_create_platform(unsigned int num_platforms);
       void opencl_get_devices_id();
       void opencl_create_context();
       void opencl_create_queue();
-      char* load_program_from_source(int *size);
+      char* opencl_load_program_from_source(int *size);
       void opencl_build_program();
       void opencl_create_program();
       void opencl_create_kernel(char* kernel_name);
-      void prepare_kernel(vector *v0, unsigned int count_v0, double h, int n_x,int n_y,int n_z, vector_field field, unsigned int max_points);
+      void opencl_prepare_kernel(vector *v0, unsigned int count_v0, double h, int n_x,int n_y,int n_z, vector_field field, unsigned int max_points);
       void opencl_run_kernel(unsigned int count_v0, unsigned int max_points, runge_kutta::Fiber **fibers);
       void opencl_init(char* kernel_name, vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers);
+      void opencl_time(cl_event* timer);
     public:
       RK_OpenCL();
       void rk2_caller(vector *v0, int count_v0, double h, int n_x, int n_y, int n_z, vector_field field, Fiber **fibers);
