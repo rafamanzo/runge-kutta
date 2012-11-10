@@ -153,7 +153,7 @@ void RK_OpenCL::opencl_run_kernel(unsigned int count_v0, unsigned int max_points
   }  
   opencl_time(&_event);
   clReleaseEvent(_event);
-  
+
   if( clEnqueueReadBuffer(_queue, _opencl_points, CL_TRUE, 0, sizeof(vector)*count_v0*max_points, points, 0, NULL, &_event) == CL_INVALID_VALUE ){
     printf("\nERROR: Failed to read buffer \"points\".\n");
     exit(-1);
